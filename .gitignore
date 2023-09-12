@@ -1,8 +1,5 @@
-# Ignore nextflow files
-.nextflow*
-# Ignore .old and .save
-*.old
-*.save
+# Ignore files starting with "."
+.*
 # Ignore the __pycache__ folder
 __pycache__/
 # Ignore output folder
