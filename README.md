@@ -1,5 +1,5 @@
 # Polar Pipeline
-is a pipeline for the purpose of analyzing human genomic data
+is a pipeline for the purpose of analyzing human genomic data.
 
 ## Table of Contents
 
@@ -32,9 +32,4 @@ The Polar Pipeline is a powerful Flask-based web application tailored for the se
 
 ## Installation
 
-Provide instructions on how to install your project. You can include code snippets if necessary.
-
-```bash
-git clone https://github.com/yourusername/yourproject.git
-cd yourproject
-npm install
+tbd
