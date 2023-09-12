@@ -1,0 +1,15 @@
+from celery import Celery
+import os
+import time
+
+app = Celery('tasks', broker='pyamqp://polarRabbit:Epididymis0!@10.21.4.63:5672/polarVHost')
+
+@app.task
+def process(filepath, clair_model, gene_source, bed_file, reference_file):
+    run_name = filepath.strip().split('/')[-1].split('.')[0]
+    command = f'python3 /mnt/shared_storage/shared_resources/polarPipeline.py -n {run_name} -i {filepath} -o /mnt/synology3/polar_pipeline/{run_name} -b /mnt/shared_storage/shared_resources/bed_files/{bed_file} -g /mnt/shared_storage/shared_resources/gene_source/{gene_source} -c /mnt/shared_storage/shared_resources/clair_models/{clair_model} -r /mnt/shared_storage/shared_resources/reference_files/{reference_file}'
+    if os.system(command) == 0:
+        return 'success'
+    else:
+        return 'failure'
+    # print(command)

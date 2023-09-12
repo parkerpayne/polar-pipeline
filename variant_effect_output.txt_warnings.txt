@@ -1,0 +1,14 @@
+WARNING: Failed to instantiate plugin LoFtool: ERROR: LoFtool scores file /home/i9a4500/vep-resources/LoFtool_scores.txt not found
+
+WARNING: Failed to instantiate plugin Mastermind: ERROR: Data file /home/i9a4500/vep-resources/mastermind_cited_variants_reference-2023.04.02-grch38.vcf.gz not found
+
+WARNING: Failed to instantiate plugin CADD: ERROR: Data file /home/i9a4500/vep-resources/whole_genome_SNVs.tsv.gz not found
+
+WARNING: Failed to instantiate plugin pLI: ERROR: pLI values file /home/i9a4500/vep-resources/pLI_values.txt not found
+
+WARNING: Failed to instantiate plugin PrimateAI: ERROR: PrimateAI scores file /home/i9a4500/vep-resources/PrimateAI_scores_v0.2_GRCh38_sorted.tsv.bgz not found
+
+WARNING: Failed to instantiate plugin dbNSFP: ERROR: Data file /home/i9a4500/vep-resources/dbNSFP4.4a_grch38.gz not found
+
+WARNING: Failed to instantiate plugin REVEL: ERROR: Data file /home/i9a4500/vep-resources/new_tabbed_revel_grch38.tsv.gz not found
+
