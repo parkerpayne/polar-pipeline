@@ -31,5 +31,4 @@ The Polar Pipeline is a powerful Flask-based web application tailored for the se
 
 
 ## Installation
-
 tbd

@@ -156,16 +156,18 @@ def dashboard():
     try:
         conn = psycopg2.connect(**db_config)
         cursor = conn.cursor()
-        cursor. execute("SELECT file_name, status, id FROM progress ORDER BY start_time")
-
-        rows = cursor.fetchall()
         
+        cursor. execute("SELECT file_name, status, id FROM progress ORDER BY start_time")
+        rows = cursor.fetchall()
+
+        cursor.execute("SELECT * FROM status;")
+        statusList = cursor.fetchall()
+        status = []
+        for item in statusList:
+            status.append(item[0] + ': ' + item[1])
+
         cursor.close()
         conn.close()
-
-        completed_process = subprocess.run(['celery', '-A', 'tasks', 'status'], text=True, capture_output=True)
-        completed_process.stdout.strip().split('\n')[-1]
-        status = completed_process.stdout.strip().replace('->', '').replace('celery@', '').split('\n')[:-1]
 
 
         return render_template('dashboard.html', rows = rows, status=status)
@@ -385,8 +387,16 @@ def info(id):
 
         folder_list = os.listdir('/home/threadripper/shared_storage/workspace')
         
+        statsPath = os.path.join('/mnt/synology3/polar_pipeline', startTime.replace(' ', '_').replace(':', '.')+'_'+file_name, '0_nextflow/run_summary.txt')
+        if os.path.isfile(statsPath):
+            rows = []
+            for line in open(statsPath, 'r'):
+                splitline = line.split('\t')
+                rows.append([splitline[0], splitline[1]])
+        else:
+            rows = []
         
-        return render_template('info.html', file_name = file_name, startTime = startTime, endTime = endTime, status = status, runtime=runtime, folder_list = folder_list, computer=computer, id=id)
+        return render_template('info.html', file_name = file_name, startTime = startTime, endTime = endTime, status = status, runtime=runtime, folder_list = folder_list, computer=computer, id=id, rows=rows)
     except Exception as e:
         return f"Error: {e}"
     
