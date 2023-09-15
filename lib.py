@@ -230,7 +230,7 @@ def samtoolsImport(input_file):
 #  |_|  |_|_____|_| \_|_____|_|  |_/_/    \_\_|      |_|     \____/|_| \_|\_____|  |_|  |_____\____/|_| \_|
                                                                                                                                                                               
 
-def minimap2(input_path, reference_path, threads):
+def minimap2(input_path, reference_path, threads='30'):
     root = input_path.split('.fastq')[0]
     minimap_command = f'minimap2 -y -t {threads} -ax map-ont {reference_path} {root}.fastq > {root}.sam'
     os.system(minimap_command)
@@ -245,7 +245,7 @@ def minimap2(input_path, reference_path, threads):
 #      \/   |_____|______|   \/  \/      |_____/ \____/|_|  \_\ |_|     |_____|_| \_|_____/|______/_/ \_\
                                                                                                        
                                                                                                        
-def viewSortIndex(input_path, threads):
+def viewSortIndex(input_path, threads='30'):
     root = input_path.split('.fastq')[0]
 
     view_command = f'samtools view -@ {threads} -bo {root}.bam {root}.sam'
@@ -274,7 +274,7 @@ def viewSortIndex(input_path, threads):
 #  |_| \_|______/_/ \_\  |_|  |_|    |______\____/   \/  \/     |_|     \____/|_| \_|\_____|  |_|  |_____\____/|_| \_|
 
 
-def nextflow(input_file, output_directory, reference_file, clair3_model_path, threads, config='default', workspace_directory='default'):
+def nextflow(input_file, output_directory, reference_file, clair3_model_path, threads='30', config='default', workspace_directory='default'):
 # Function to run the epi2me nextflow workflow. Assumes nextflow is installed into path.
 #   input_file: input file path
 #   output_directory: what folder the output and workspace folders will be generated in
@@ -320,7 +320,7 @@ def nextflow(input_file, output_directory, reference_file, clair3_model_path, th
     except:
         return False
 
-def y_nextflow(input_file, output_directory, reference_file, clair3_model_path, config='default', workspace_directory='default'):
+def y_nextflow(input_file, output_directory, reference_file, clair3_model_path, threads='30', config='default', workspace_directory='default'):
     run_name = input_file.strip().split('/')[-1].split('.')[0]
     command = f"echo Epididymis0! | sudo -S nextflow run epi2me-labs/wf-human-variation \
         --out_dir {output_directory}/output \
@@ -398,7 +398,7 @@ def parseAlts(evilstinkynogoodline):
 #      \/   |______|_|      |_|     \____/|_| \_|\_____|  |_|  |_____\____/|_| \_|
                                                                                 
                                                                                 
-def vep(input_snv, input_sv, output_snv='output', output_sv='output'):
+def vep(input_snv, input_sv, output_snv='output', output_sv='output', threads='30'):
 # Runs vep. Params are in list form, so it is easy to add new ones. Same with plugins. The process for installing vep to a new computer
 # is unecissarily difficult, but there is (hopefully) a prepackaged vep folder and guide in the setup tab of the webapp.
 #   input_snv: path to the input snv file (vcf from either princess or nextflow)
@@ -418,7 +418,7 @@ def vep(input_snv, input_sv, output_snv='output', output_sv='output'):
         stdout, stderr = process.communicate()
         input_sv = input_sv.split('.gz')[0]
 
-    start = '~/ensembl-vep/vep --offline --cache --tab --everything --assembly GRCh38 --fasta /mnt/shared_storage/shared_resources/reference_files/ref.fasta --fork 88 --buffer_size 20000'
+    start = f'~/ensembl-vep/vep --offline --cache --tab --everything --assembly GRCh38 --fasta /mnt/shared_storage/shared_resources/reference_files/ref.fasta --fork {threads} --buffer_size 20000'
     params = [
         ' --sift b',
         ' --polyphen b',

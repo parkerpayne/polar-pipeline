@@ -127,7 +127,7 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
         input_file_path = os.path.join(working_path, input_file_path.strip().split('/')[-1])
 
         try:
-            input_file_path = minimap2(input_file_path, reference_path, '80')
+            input_file_path = minimap2(input_file_path, reference_path, threads)
         except:
             update_db(id, 'status', 'failed: minimap')
             update_db(id, 'end_time', datetime.now())
@@ -136,7 +136,7 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
         update_db(id, 'status', 'view sort index')
 
         try:
-            input_file_path = viewSortIndex(input_file_path)
+            input_file_path = viewSortIndex(input_file_path, threads)
         except:
             update_db(id, 'status', 'failed: minimap')
             update_db(id, 'end_time', datetime.now())
@@ -149,7 +149,7 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     update_db(id, 'status', 'nextflow')
     # princess(working_path, run_name, clair_model_path, pc_name, reference_path)
     try:
-        nextflow(input_file_path, working_path, reference_path, clair_model_path)
+        nextflow(input_file_path, working_path, reference_path, clair_model_path, threads)
     except:
         update_db(id, 'status', 'failed: nextflow')
         update_db(id, 'end_time', datetime.now())
@@ -185,7 +185,7 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     
 
     update_db(id, 'status', 'vep')
-    vep(os.path.join(working_path, 'output', run_name+'.sepAlt.wf_snp.vcf'), os.path.join(working_path, 'output', run_name+'.wf_sv.vcf.gz'))
+    vep(os.path.join(working_path, 'output', run_name+'.sepAlt.wf_snp.vcf'), os.path.join(working_path, 'output', run_name+'.wf_sv.vcf.gz'), threads)
     if checksignal(id) == 'stop':
         abort(working_path, id)
 
@@ -251,6 +251,256 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
         update_db(id, 'status', 'failed: merge')
         update_db(id, 'end_time', datetime.now())
         quit()
+
+    '''
+            FIRST OUTPUT GENERATED
+    '''
+
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    nextflowdir = os.path.join(output_dir, '0_nextflow')
+    if not os.path.exists(nextflowdir):
+        os.mkdir(nextflowdir)
+    bamdir = os.path.join(output_dir, '1_bam')
+    if not os.path.exists(bamdir):
+        os.mkdir(bamdir)
+    variantdir = os.path.join(output_dir, '2_variant_files')
+    if not os.path.exists(variantdir):
+        os.mkdir(variantdir)
+    finaldir = os.path.join(output_dir, '3_final_candidates')
+    if not os.path.exists(finaldir):
+        os.mkdir(finaldir) 
+
+    if checksignal(id) == 'stop':
+        abort(working_path, id)
+
+    update_db(id, 'status', 'tabulating tools')
+    print('adding tools and gene source...')
+    try:
+        output = addToolsColumn_addGeneSource(output, gene_source_file)
+    except:
+        update_db(id, 'status', 'failed: adding tools and gene source')
+        update_db(id, 'end_time', datetime.now())
+        quit()
+
+    if checksignal(id) == 'stop':
+        abort(working_path, id)
+
+    update_db(id, 'status', 'collapsing duplicate rows')
+    print('collapsing duplicate rows...')
+    try:
+        output = collapseDuplicateRows(output)
+    except:
+        update_db(id, 'status', 'failed: collapsing duplicate rows')
+        update_db(id, 'end_time', datetime.now())
+        quit()
+
+    if checksignal(id) == 'stop':
+        abort(working_path, id)
+
+    resultdir = os.path.join(working_path, 'output')
+
+    with open(os.path.join(resultdir, run_name+'_merged.bed'), 'w') as opened:
+        opened.write(''.join(output))
+
+    update_db(id, 'status', 'zipping merged file')
+    print('zipping merged file...')
+    process = subprocess.Popen(["pigz", os.path.join(resultdir, run_name+"_merged.bed")], cwd=f"{resultdir}")
+    stdout, stderr = process.communicate()
+    process = subprocess.Popen(["mv", os.path.join(resultdir, run_name+"_merged.bed.gz"), variantdir], cwd=f"{resultdir}")
+    stdout, stderr = process.communicate()     
+
+    update_db(id, 'status', 'intersecting')
+    try:
+        output = intersect(output, bed)
+    except:
+        update_db(id, 'status', 'failed: intersection')
+        update_db(id, 'end_time', datetime.now())
+        quit()
+
+    update_db(id, 'status', 'compiling candidates')
+    print('finding candidates...')
+    try:
+        output = findCandidates(output)
+    except:
+        update_db(id, 'status', 'failed: find candidates')
+        update_db(id, 'end_time', datetime.now())
+        quit()
+
+    columns = getColumns(output)
+    final_output = []
+    for line in output:
+        tabbed_line = line.strip().split('\t')
+        newline = tabbed_line[:columns['PRECISION']] + [tabbed_line[columns['SYMBOL']]] + tabbed_line[columns['PRECISION']:]
+        final_output.append('\t'.join(newline)+'\n')
+
+    print('done!')
+
+    update_db(id, 'status', 'transferring completed files')
+    currentTime = datetime.now()
+    update_db(id, 'end_time', currentTime)
+
+    finalfile = os.path.join(finaldir, run_name+'_final.vcf')
+    with open(finalfile, 'w') as openFile:
+        openFile.write(''.join(final_output))
+
+    
+
+    process = subprocess.Popen(["tar", "-cf", "variantfiles.tar", run_name+".sepAlt.wf_snp.vcf", run_name+".wf_sv.vcf", run_name+"_vep_snv.tsv", run_name+"_vep_sv.tsv"], cwd=f"{resultdir}")
+    stdout, stderr = process.communicate()
+    process = subprocess.Popen(["pigz", "variantfiles.tar"], cwd=f"{resultdir}")
+    stdout, stderr = process.communicate()
+    process = subprocess.Popen(["cp", "variantfiles.tar.gz", variantdir], cwd=f"{resultdir}")
+    stdout, stderr = process.communicate()
+    process = subprocess.Popen(["rm", "variantfiles.tar.gz"], cwd=f"{resultdir}")
+    stdout, stderr = process.communicate()
+
+    process = subprocess.Popen(["cp", run_name+".haplotagged.bam", run_name+".haplotagged.bam.bai", bamdir], cwd=f"{resultdir}")
+    stdout, stderr = process.communicate()
+    process = subprocess.Popen(["rm", run_name+".haplotagged.bam", run_name+".haplotagged.bam.bai"], cwd=f"{resultdir}")
+    stdout, stderr = process.communicate()
+
+    process = subprocess.Popen(["rm", reference_file_name, reference_file_name+'.fai', reference_file_name+".fa"], cwd=f"{resultdir}")
+    stdout, stderr = process.communicate()
+    process = subprocess.Popen(["rm", "-r", "ref_cache"], cwd=f"{resultdir}")
+    stdout, stderr = process.communicate()
+    process = subprocess.Popen(["rm", "-r", "workspace"], cwd=f"{working_path}")
+    stdout, stderr = process.communicate()
+    process = subprocess.Popen(["tar", "-cf", run_name+"_nextflow.tar", "output"], cwd=working_path)
+    stdout, stderr = process.communicate()
+    process = subprocess.Popen(["pigz", run_name+"_nextflow.tar"], cwd=working_path)
+    stdout, stderr = process.communicate()
+    process = subprocess.Popen(["cp", run_name+"_nextflow.tar.gz", nextflowdir], cwd=working_path)
+    stdout, stderr = process.communicate()
+    process = subprocess.Popen(["rm", run_name+"_nextflow.tar.gz"], cwd=working_path)
+    stdout, stderr = process.communicate()
+
+    process = subprocess.Popen(["rm", "-r", id], cwd='/'.join(working_path.strip().split('/')[:-1]))
+    stdout, stderr = process.communicate()
+
+    update_db(id, 'status', 'complete')
+
+
+@app.task
+def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_name, reference_file_name, id, threads):
+    clair_model_path = os.path.join('/mnt/shared_storage/shared_resources/clair_models', clair_model_name)
+    gene_source_path = os.path.join('/mnt/shared_storage/shared_resources/gene_source', gene_source_name)
+    reference_path = os.path.join('/mnt/shared_storage/shared_resources/reference_files', reference_file_name)
+    bed_file_path = os.path.join('/mnt/shared_storage/shared_resources/bed_files', bed_file_name)
+
+    pc_name = whoami()
+
+    CONFIG_FILE_PATH = '/mnt/shared_storage/webapp/polarPipeline/assets/config.ini'
+
+    config = configparser.ConfigParser()
+
+    config.read(CONFIG_FILE_PATH)
+
+    if config.has_section(pc_name):
+        threads = config[pc_name]['threads']
+    else:
+        threads = config['Default']['threads']
+
+    if '/' + pc_name + '/' in input_file_path:
+        input_file_path = input_file_path.replace('/mnt', '/home')
+
+    run_name = input_file_path.strip().split('/')[-1].split('.')[0]
+    input_directory = input_file_path.strip().split(run_name)[0]
+
+    i = 0
+    while i < 4:
+        if os.path.isfile(input_file_path):
+            print('found file ' + run_name+'!')
+            if os.path.isdir(input_directory):
+                print('directory identified!')
+                break
+        print("input could not be found: " + input_file_path + ". retrying.")
+        time.sleep(10)
+        i+=1
+        if i == 3:
+            print('could not be found. quitting.')
+            update_db(id, 'status', 'file not found')
+            quit()
+    # bam = False
+    # fast5 = False
+    # for file in os.listdir(input_directory):
+    #     if file.endswith('.bam'):
+    #         bam = True
+    #         input_dir = os.path.join()
+    #     file.endswith('.fast5') or file.endswith('.pod5'):
+    working_path = f'/home/{pc_name}/polarPipelineNFWork/{id}'
+
+    if checksignal(id) == 'stop':
+        abort(working_path, id)
+
+    os.makedirs(working_path, exist_ok=True)
+    command = ['cp', input_file_path, working_path]
+    update_db(id, 'status', 'transferring in')
+    update_db(id, 'computer', pc_name)
+    if subprocess.run(command) == '0':
+        print('cool ig')
+    
+    currentTime = datetime.now()
+    formattedTime = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
+    output_dir = f'/mnt/synology3/polar_pipeline/{formattedTime}_T2T_{run_name}'
+    
+    update_db(id, 'start_time', currentTime)
+    
+    if not input_file_path.endswith('.bam'):
+        update_db(id, 'status', 'minimap')
+
+        print('input: ' + working_path)
+        print('output file destination: ' + output_dir)
+
+        input_file_path = os.path.join(working_path, input_file_path.strip().split('/')[-1])
+
+        try:
+            input_file_path = minimap2(input_file_path, reference_path, threads)
+        except:
+            update_db(id, 'status', 'failed: minimap')
+            update_db(id, 'end_time', datetime.now())
+            quit()
+        
+        update_db(id, 'status', 'view sort index')
+
+        try:
+            input_file_path = viewSortIndex(input_file_path, threads)
+        except:
+            update_db(id, 'status', 'failed: minimap')
+            update_db(id, 'end_time', datetime.now())
+            quit()
+
+        
+    if checksignal(id) == 'stop':
+        abort(working_path, id)
+
+    update_db(id, 'status', 'nextflow')
+    # princess(working_path, run_name, clair_model_path, pc_name, reference_path)
+    try:
+        y_nextflow(input_file_path, working_path, reference_path, clair_model_path, threads)
+    except:
+        update_db(id, 'status', 'failed: nextflow')
+        update_db(id, 'end_time', datetime.now())
+        quit()
+
+    if checksignal(id) == 'stop':
+        abort(working_path, id)
+
+    # if not os.path.isdir(os.path.join('/home', pc_name, 'polarPipelineWork', run_name, 'analysis/result')):
+    #     update_db(id, 'status', 'failed: princess', conn)
+    #     update_db(id, 'end_time', datetime.now(), conn)
+    #     quit()        
+
+    process = subprocess.Popen(["pigz", "-d", run_name+".wf_snp.vcf.gz"], cwd=f"{working_path}/output")
+    stdout, stderr = process.communicate()
+
+    try:
+        outputfile = load_file(os.path.join(working_path, "output", run_name+".wf_snp.vcf"))
+    except:
+        update_db(id, 'status', 'failed: nextflow')
+        update_db(id, 'end_time', datetime.now())
+        quit()
+
 
     '''
             FIRST OUTPUT GENERATED
