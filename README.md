@@ -23,7 +23,7 @@ The Polar Pipeline is a powerful Flask-based web application tailored for the se
 
 ## Features
 
-- **Streamlined Analysis:** Our web application simplifies the complex process of analyzing human genomic data, making it accessible to researchers and scientists with varying levels of expertise.
+- **Streamlined Analysis:** The included web application simplifies the complex process of analyzing human genomic data, making it accessible to researchers and scientists with varying levels of expertise.
 
 - **Scalability:** With Celery's job queuing system, the application scales effortlessly to handle large-scale data processing tasks, ensuring high-performance analysis.
 
