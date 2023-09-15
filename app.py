@@ -96,9 +96,9 @@ def file_chosen(path, clair_model, gene_source, bed_file, reference_file):
     id = hashlib.sha256(concatenated_string.encode()).hexdigest()
 
     try:
-        query = "INSERT INTO progress (file_name, status, id) VALUES (%s, %s, %s)"
+        query = "INSERT INTO progress (file_name, status, id, clair_model, bed_file, reference, gene_source) VALUES (%s, %s, %s, %s, %s, %s, %s)"
         with conn.cursor() as cursor:
-            cursor.execute(query, (file_name, 'waiting', id))
+            cursor.execute(query, (file_name, 'waiting', id, clair_model, bed_file, reference_file, gene_source))
         conn.commit()
     except Exception as e:
         print(f"Error updating the database: {e}")
@@ -396,7 +396,12 @@ def info(id):
         else:
             rows = []
         
-        return render_template('info.html', file_name = file_name, startTime = startTime, endTime = endTime, status = status, runtime=runtime, folder_list = folder_list, computer=computer, id=id, rows=rows)
+        clair_model = row[7]
+        bed_file = row[8]
+        reference = row[9]
+        gene_source = row[10]
+        
+        return render_template('info.html', file_name = file_name, startTime = startTime, endTime = endTime, status = status, runtime=runtime, folder_list = folder_list, computer=computer, id=id, rows=rows, clair_model=clair_model, bed_file=bed_file, reference=reference, gene_source=gene_source)
     except Exception as e:
         return f"Error: {e}"
     

@@ -243,6 +243,7 @@ def nextflow(input_file, output_directory, reference_file, clair3_model_path, co
         --snp \
         --sv \
         --cnv \
+        --str \
         --bam {input_file} \
         --ref {reference_file} \
         --bam_min_coverage 0.01 \
