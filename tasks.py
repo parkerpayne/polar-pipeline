@@ -344,8 +344,6 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     with open(finalfile, 'w') as openFile:
         openFile.write(''.join(final_output))
 
-    
-
     process = subprocess.Popen(["tar", "-cf", "variantfiles.tar", run_name+".sepAlt.wf_snp.vcf", run_name+".wf_sv.vcf", run_name+"_vep_snv.tsv", run_name+"_vep_sv.tsv"], cwd=f"{resultdir}")
     stdout, stderr = process.communicate()
     process = subprocess.Popen(["pigz", "variantfiles.tar"], cwd=f"{resultdir}")
@@ -506,6 +504,8 @@ def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_nam
             FIRST OUTPUT GENERATED
     '''
 
+    resultdir = os.path.join(working_path, 'output')
+
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     nextflowdir = os.path.join(output_dir, '0_nextflow')
@@ -514,118 +514,14 @@ def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_nam
     bamdir = os.path.join(output_dir, '1_bam')
     if not os.path.exists(bamdir):
         os.mkdir(bamdir)
-    variantdir = os.path.join(output_dir, '2_variant_files')
-    if not os.path.exists(variantdir):
-        os.mkdir(variantdir)
-    finaldir = os.path.join(output_dir, '3_final_candidates')
-    if not os.path.exists(finaldir):
-        os.mkdir(finaldir) 
 
     if checksignal(id) == 'stop':
         abort(working_path, id)
 
-    update_db(id, 'status', 'tabulating tools')
-    print('adding tools and gene source...')
-    try:
-        output = addToolsColumn_addGeneSource(output, gene_source_file)
-    except:
-        update_db(id, 'status', 'failed: adding tools and gene source')
-        update_db(id, 'end_time', datetime.now())
-        quit()
-
-    if checksignal(id) == 'stop':
-        abort(working_path, id)
-
-    update_db(id, 'status', 'collapsing duplicate rows')
-    print('collapsing duplicate rows...')
-    try:
-        output = collapseDuplicateRows(output)
-    except:
-        update_db(id, 'status', 'failed: collapsing duplicate rows')
-        update_db(id, 'end_time', datetime.now())
-        quit()
-
-    if checksignal(id) == 'stop':
-        abort(working_path, id)
-
-    resultdir = os.path.join(working_path, 'output')
-
-    with open(os.path.join(resultdir, run_name+'_merged.bed'), 'w') as opened:
-        opened.write(''.join(output))
-
-    update_db(id, 'status', 'zipping merged file')
-    print('zipping merged file...')
-    process = subprocess.Popen(["pigz", os.path.join(resultdir, run_name+"_merged.bed")], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["mv", os.path.join(resultdir, run_name+"_merged.bed.gz"), variantdir], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()     
-
-    update_db(id, 'status', 'intersecting')
-    try:
-        output = intersect(output, bed)
-    except:
-        update_db(id, 'status', 'failed: intersection')
-        update_db(id, 'end_time', datetime.now())
-        quit()
-
-    update_db(id, 'status', 'compiling candidates')
-    print('finding candidates...')
-    try:
-        output = findCandidates(output)
-    except:
-        update_db(id, 'status', 'failed: find candidates')
-        update_db(id, 'end_time', datetime.now())
-        quit()
-
-    columns = getColumns(output)
-    final_output = []
-    for line in output:
-        tabbed_line = line.strip().split('\t')
-        newline = tabbed_line[:columns['PRECISION']] + [tabbed_line[columns['SYMBOL']]] + tabbed_line[columns['PRECISION']:]
-        final_output.append('\t'.join(newline)+'\n')
-
-    print('done!')
-
-    update_db(id, 'status', 'transferring completed files')
-    currentTime = datetime.now()
-    update_db(id, 'end_time', currentTime)
-
-    finalfile = os.path.join(finaldir, run_name+'_final.vcf')
-    with open(finalfile, 'w') as openFile:
-        openFile.write(''.join(final_output))
-
-    
-
-    process = subprocess.Popen(["tar", "-cf", "variantfiles.tar", run_name+".sepAlt.wf_snp.vcf", run_name+".wf_sv.vcf", run_name+"_vep_snv.tsv", run_name+"_vep_sv.tsv"], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["pigz", "variantfiles.tar"], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["cp", "variantfiles.tar.gz", variantdir], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["rm", "variantfiles.tar.gz"], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-
-    process = subprocess.Popen(["cp", run_name+".haplotagged.bam", run_name+".haplotagged.bam.bai", bamdir], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["rm", run_name+".haplotagged.bam", run_name+".haplotagged.bam.bai"], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-
-    process = subprocess.Popen(["rm", reference_file_name, reference_file_name+'.fai', reference_file_name+".fa"], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["rm", "-r", "ref_cache"], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["rm", "-r", "workspace"], cwd=f"{working_path}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["tar", "-cf", run_name+"_nextflow.tar", "output"], cwd=working_path)
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["pigz", run_name+"_nextflow.tar"], cwd=working_path)
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["cp", run_name+"_nextflow.tar.gz", nextflowdir], cwd=working_path)
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["rm", run_name+"_nextflow.tar.gz"], cwd=working_path)
-    stdout, stderr = process.communicate()
-
-    process = subprocess.Popen(["rm", "-r", id], cwd='/'.join(working_path.strip().split('/')[:-1]))
-    stdout, stderr = process.communicate()
+    subprocess.run(['rm', '-r', 'workspace'], cwd=working_path)
+    subprocess.run(['rm', '-r', 'ref_cache'], cwd=resultdir)
+    subprocess.run(['mv', run_name+'_sorted.bam', run_name+'_sorted.bam.bai', bamdir], cwd=working_path)
+    subprocess.run(['mv', 'output', nextflowdir], cwd=working_path)
+    subprocess.run(["rm", "-r", id], cwd='/'.join(working_path.strip().split('/')[:-1]))
 
     update_db(id, 'status', 'complete')
