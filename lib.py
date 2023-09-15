@@ -1,6 +1,7 @@
 from tqdm import tqdm
 import subprocess
 import os
+import math
 import psycopg2
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
@@ -221,6 +222,50 @@ def samtoolsImport(input_file):
     except:
         return False
 
+#   __  __ _____ _   _ _____ __  __          _____    ______ _    _ _   _  _____ _______ _____ ____  _   _ 
+#  |  \/  |_   _| \ | |_   _|  \/  |   /\   |  __ \  |  ____| |  | | \ | |/ ____|__   __|_   _/ __ \| \ | |
+#  | \  / | | | |  \| | | | | \  / |  /  \  | |__) | | |__  | |  | |  \| | |       | |    | || |  | |  \| |
+#  | |\/| | | | | . ` | | | | |\/| | / /\ \ |  ___/  |  __| | |  | | . ` | |       | |    | || |  | | . ` |
+#  | |  | |_| |_| |\  |_| |_| |  | |/ ____ \| |      | |    | |__| | |\  | |____   | |   _| || |__| | |\  |
+#  |_|  |_|_____|_| \_|_____|_|  |_/_/    \_\_|      |_|     \____/|_| \_|\_____|  |_|  |_____\____/|_| \_|
+                                                                                                                                                                              
+
+def minimap2(input_path, reference_path, threads):
+    root = input_path.split('.fastq')[0]
+    minimap_command = f'minimap2 -y -t {threads} -ax map-ont {reference_path} {root}.fastq > {root}.sam'
+    os.system(minimap_command)
+
+    return f"{root}.sam"
+
+#  __      _______ ________          __    _____  ____  _____ _______    _____ _   _ _____  ________   __
+#  \ \    / /_   _|  ____\ \        / /   / ____|/ __ \|  __ \__   __|  |_   _| \ | |  __ \|  ____\ \ / /
+#   \ \  / /  | | | |__   \ \  /\  / /   | (___ | |  | | |__) | | |       | | |  \| | |  | | |__   \ V / 
+#    \ \/ /   | | |  __|   \ \/  \/ /     \___ \| |  | |  _  /  | |       | | | . ` | |  | |  __|   > <  
+#     \  /   _| |_| |____   \  /\  /      ____) | |__| | | \ \  | |      _| |_| |\  | |__| | |____ / . \ 
+#      \/   |_____|______|   \/  \/      |_____/ \____/|_|  \_\ |_|     |_____|_| \_|_____/|______/_/ \_\
+                                                                                                       
+                                                                                                       
+def viewSortIndex(input_path, threads):
+    root = input_path.split('.fastq')[0]
+
+    view_command = f'samtools view -@ {threads} -bo {root}.bam {root}.sam'
+    os.system(view_command)
+    # print(view_command)
+
+    sort_command = f'samtools sort -m 2G -o {root}_sorted.bam -@ {threads} {root}.bam'
+    os.system(sort_command)
+    # print(sort_command)
+
+    index_command = f'samtools index -b -@ {threads} -o {root}_sorted.bam.bai {root}_sorted.bam'
+    os.system(index_command)
+    # print(index_command)
+
+    rm_command = f'rm {root}.sam {root}.bam'
+    os.system(rm_command)
+    # print(rm_command)
+
+    return f"{root}_sorted.bam"
+
 #   _   _ ________   _________ ______ _      ______          __  ______ _    _ _   _  _____ _______ _____ ____  _   _ 
 #  | \ | |  ____\ \ / /__   __|  ____| |    / __ \ \        / / |  ____| |  | | \ | |/ ____|__   __|_   _/ __ \| \ | |
 #  |  \| | |__   \ V /   | |  | |__  | |   | |  | \ \  /\  / /  | |__  | |  | |  \| | |       | |    | || |  | |  \| |
@@ -229,7 +274,7 @@ def samtoolsImport(input_file):
 #  |_| \_|______/_/ \_\  |_|  |_|    |______\____/   \/  \/     |_|     \____/|_| \_|\_____|  |_|  |_____\____/|_| \_|
 
 
-def nextflow(input_file, output_directory, reference_file, clair3_model_path, config='default', workspace_directory='default'):
+def nextflow(input_file, output_directory, reference_file, clair3_model_path, threads, config='default', workspace_directory='default'):
 # Function to run the epi2me nextflow workflow. Assumes nextflow is installed into path.
 #   input_file: input file path
 #   output_directory: what folder the output and workspace folders will be generated in
@@ -258,12 +303,12 @@ def nextflow(input_file, output_directory, reference_file, clair3_model_path, co
         --depth_intervals \
         --phase_vcf \
         --phase_sv \
-        --threads 90 \
-        --ubam_map_threads 30 \
-        --ubam_sort_threads 30 \
-        --ubam_bam2fq_threads 30 \
-        --merge_threads 90 \
-        --annotation_threads 90 \
+        --threads {threads} \
+        --ubam_map_threads {math.floor(int(threads)/3)} \
+        --ubam_sort_threads {math.floor(int(threads)/3)} \
+        --ubam_bam2fq_threads {math.floor(int(threads)/3)} \
+        --merge_threads {threads} \
+        --annotation_threads {threads} \
         --disable_ping"
     try:
         os.system(command)

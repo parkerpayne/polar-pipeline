@@ -205,12 +205,8 @@ def read_config(computer_name=None):
 def parse_config_dict(config_dict):
     parsed_dict = {}
     for key, value in config_dict.items():
-        if key.endswith('_int'):
-            key = key[:-4]
-            value = int(value)
-        elif key.endswith('_bool'):
-            key = key[:-5]
-            value = bool(value)
+        key = key
+        value = value
 
         parsed_dict[key] = value
 

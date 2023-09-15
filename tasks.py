@@ -3,6 +3,7 @@ from lib import *
 import time
 import sys
 import os
+import configparser
 import subprocess
 import psycopg2
 from datetime import datetime
@@ -52,7 +53,7 @@ app = Celery('tasks', broker='pyamqp://polarRabbit:Epididymis0!@10.21.4.63:5672/
 
 
 @app.task
-def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, reference_file_name, id):
+def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, reference_file_name, id, threads):
 
     clair_model_path = os.path.join('/mnt/shared_storage/shared_resources/clair_models', clair_model_name)
     gene_source_path = os.path.join('/mnt/shared_storage/shared_resources/gene_source', gene_source_name)
@@ -61,14 +62,22 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
 
     pc_name = whoami()
 
+    CONFIG_FILE_PATH = '/mnt/shared_storage/webapp/polarPipeline/assets/config.ini'
+
+    config = configparser.ConfigParser()
+
+    config.read(CONFIG_FILE_PATH)
+
+    if config.has_section(pc_name):
+        threads = config[pc_name]['threads']
+    else:
+        threads = config['Default']['threads']
+
     if '/' + pc_name + '/' in input_file_path:
         input_file_path = input_file_path.replace('/mnt', '/home')
 
-    CONFIG_FILE_PATH = '/mnt/shared_storage/webapp/polarPipeline/assets/config.ini'
-
     run_name = input_file_path.strip().split('/')[-1].split('.')[0]
     input_directory = input_file_path.strip().split(run_name)[0]
-    
 
     i = 0
     while i < 4:
@@ -92,6 +101,10 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     #         input_dir = os.path.join()
     #     file.endswith('.fast5') or file.endswith('.pod5'):
     working_path = f'/home/{pc_name}/polarPipelineNFWork/{id}'
+
+    if checksignal(id) == 'stop':
+        abort(working_path, id)
+
     os.makedirs(working_path, exist_ok=True)
     command = ['cp', input_file_path, working_path]
     update_db(id, 'status', 'transferring in')
@@ -106,7 +119,7 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     update_db(id, 'start_time', currentTime)
     
     if not input_file_path.endswith('.bam'):
-        update_db(id, 'status', 'samtools import')
+        update_db(id, 'status', 'minimap')
 
         print('input: ' + working_path)
         print('output file destination: ' + output_dir)
@@ -114,11 +127,21 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
         input_file_path = os.path.join(working_path, input_file_path.strip().split('/')[-1])
 
         try:
-            input_file_path = samtoolsImport(input_file_path)
+            input_file_path = minimap2(input_file_path, reference_path, '80')
         except:
-            update_db(id, 'status', 'failed: samtools import')
+            update_db(id, 'status', 'failed: minimap')
             update_db(id, 'end_time', datetime.now())
             quit()
+        
+        update_db(id, 'status', 'view sort index')
+
+        try:
+            input_file_path = viewSortIndex(input_file_path)
+        except:
+            update_db(id, 'status', 'failed: minimap')
+            update_db(id, 'end_time', datetime.now())
+            quit()
+
         
     if checksignal(id) == 'stop':
         abort(working_path, id)
@@ -341,7 +364,7 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     stdout, stderr = process.communicate()
     process = subprocess.Popen(["rm", "-r", "ref_cache"], cwd=f"{resultdir}")
     stdout, stderr = process.communicate()
-    process = subprocess.Popen(["rm", "workspace"], cwd=f"{working_path}")
+    process = subprocess.Popen(["rm", "-r", "workspace"], cwd=f"{working_path}")
     stdout, stderr = process.communicate()
     process = subprocess.Popen(["tar", "-cf", run_name+"_nextflow.tar", "output"], cwd=working_path)
     stdout, stderr = process.communicate()
