@@ -341,7 +341,7 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     stdout, stderr = process.communicate()
     process = subprocess.Popen(["rm", "-r", "ref_cache"], cwd=f"{resultdir}")
     stdout, stderr = process.communicate()
-    process = subprocess.Popen(["rm", "workspace"], cwd=f"{working_path}")
+    process = subprocess.Popen(["rm", "-r", "workspace"], cwd=f"{working_path}")
     stdout, stderr = process.communicate()
     process = subprocess.Popen(["tar", "-cf", run_name+"_nextflow.tar", "output"], cwd=working_path)
     stdout, stderr = process.communicate()

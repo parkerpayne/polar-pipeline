@@ -17,11 +17,6 @@
             color: #fff;
         }
         
-        .container-middle {
-            max-width: 50%;
-            margin: 0 auto;
-        }
-        
         .config-container {
             margin-top: 2rem;
             margin-bottom: 2rem;
@@ -100,144 +95,147 @@
         </div>
     </nav>
     
-    <div class="container-middle">
-        <div class="config-container">
-            <h3>Configuration</h3>
-            <!-- <div class="config-actions">
-                <h3 class="configurations-heading">Configurations</h3>
-                <div>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addComputerModal">
-                        + <span class="oi oi-plus" aria-hidden="true"></span>
-                    </button>
-                </div>
-            </div>
-            <ul class="list-group" style="border-radius:10px">
-                {% for computer_name, config_values in all_configurations.items() %}
-                <li class="list-group-item">
-                    <form class="config-dropdown-form" action="{{ url_for('save_configuration') }}" method="post">
-                        <input type="hidden" name="computer_name" value="{{ computer_name }}">
-                        <div class="config-actions">
-                            <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown">{{ computer_name }}</button>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="config-container">
+                    <div class="config-actions">
+                        <h3 class="configurations-heading">Configurations</h3>
+                        <div>
+                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addComputerModal">
+                                + <span class="oi oi-plus" aria-hidden="true"></span>
+                            </button>
                         </div>
-                        <div class="configurations-dropdown" data-computer-name="{{ computer_name }}">
-                            {% if computer_name %}
-                            <div class="config-container">
-                                <h3>Configuration for {{ computer_name }}</h3>
+                    </div>
+                    <ul class="list-group" style="border-radius:10px">
+                        {% for computer_name, config_values in all_configurations.items() %}
+                        <li class="list-group-item">
+                            <form class="config-dropdown-form" action="{{ url_for('save_configuration') }}" method="post">
                                 <input type="hidden" name="computer_name" value="{{ computer_name }}">
-                                {% for key, value in config_values.items() %}
-                                <div class="form-group">
-                                    <label for="{{ key }}">{{ key }}</label>
-                                    <input type="text" class="form-control" id="{{ key }}" name="{{ key }}" value="{{ value }}">
+                                <div class="config-actions">
+                                    <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown">{{ computer_name }}</button>
                                 </div>
+                                <div class="configurations-dropdown" data-computer-name="{{ computer_name }}">
+                                    {% if computer_name %}
+                                    <div class="config-container">
+                                        <h3>{{ computer_name }} Configuration</h3>
+                                        <input type="hidden" name="computer_name" value="{{ computer_name }}">
+                                        {% for key, value in config_values.items() %}
+                                        <div class="form-group">
+                                            <label for="{{ key }}">{{ key }}</label>
+                                            <input type="text" class="form-control" id="{{ key }}" name="{{ key }}" value="{{ value }}">
+                                        </div>
+                                        {% endfor %}
+                                        {% if computer_name != 'Default' and computer_name != 'General' %}
+                                        <button type="button" class="btn btn-secondary delete-config-btn">Delete</button>
+                                        {% endif %}
+                                        <button type="submit" class="btn btn-primary">Save</button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </form>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <!-- <div class="round-container" style="margin-top: 2rem;">
+                        <table class="table">
+                            <thead>
+                                <td><h3 class="configurations-heading">Clair Models</h3></td>
+                                <td>
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="">
+                                        + <span class="oi oi-plus" aria-hidden="true"></span>
+                                    </button>
+                                </td>
+                            </thead>
+                            <tbody>
+                                {% for model in clair_models %}
+                                <tr>
+                                    <td class="col-10 truncate">{{ model }}</td>
+                                    <td class="col-2">
+                                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="">
+                                            X <span class="oi oi-plus" aria-hidden="true"></span>
+                                        </button>
+                                    </td>
+                                </tr>
                                 {% endfor %}
-                                {% if computer_name != 'Default' %}
-                                <button type="button" class="btn btn-secondary delete-config-btn">Delete</button>
-                                {% endif %}
-                                <button type="submit" class="btn btn-primary">Save</button>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </form>
-                </li>
-                {% endfor %}
-            </ul> -->
-            <div class="round-container" style="margin-top: 2rem;">
-                <table class="table">
-                    <thead>
-                        <td><h3 class="configurations-heading">Clair Models</h3></td>
-                        <td>
-                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="">
-                                + <span class="oi oi-plus" aria-hidden="true"></span>
-                            </button>
-                        </td>
-                    </thead>
-                    <tbody>
-                        {% for model in clair_models %}
-                        <tr>
-                            <td class="col-10 truncate">{{ model }}</td>
-                            <td class="col-2">
-                                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="">
-                                     X <span class="oi oi-plus" aria-hidden="true"></span>
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="round-container" style="margin-top: 2rem;">
-                <table class="table">
-                    <thead>
-                        <td><h3 class="configurations-heading">Reference Files</h3></td>
-                        <td>
-                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="">
-                                + <span class="oi oi-plus" aria-hidden="true"></span>
-                            </button>
-                        </td>
-                    </thead>
-                    <tbody>
-                        {% for file in reference_files %}
-                        <tr>
-                            {% if not file.endswith('.fai') %}
-                            <td class="col-10 truncate">{{ file }}</td>
-                            <td class="col-2">
-                                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="">
-                                     X <span class="oi oi-plus" aria-hidden="true"></span>
-                                </button>
-                            </td>
-                            {% endif %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="round-container" style="margin-top: 2rem;">
-                <table class="table">
-                    <thead>
-                        <td><h3 class="configurations-heading">Gene Source Files</h3></td>
-                        <td>
-                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="">
-                                + <span class="oi oi-plus" aria-hidden="true"></span>
-                            </button>
-                        </td>
-                    </thead>
-                    <tbody>
-                        {% for file in gene_sources %}
-                        <tr>
-                            <td class="col-10 truncate">{{ file }}</td>
-                            <td class="col-2">
-                                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="">
-                                     X <span class="oi oi-plus" aria-hidden="true"></span>
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="round-container" style="margin-top: 2rem;">
-                <table class="table">
-                    <thead>
-                        <td><h3 class="configurations-heading">Bed Files</h3></td>
-                        <td>
-                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="">
-                                + <span class="oi oi-plus" aria-hidden="true"></span>
-                            </button>
-                        </td>
-                    </thead>
-                    <tbody>
-                        {% for file in bed_files %}
-                        <tr>
-                            <td class="col-10 truncate">{{ file }}</td>
-                            <td class="col-2">
-                                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="">
-                                     X <span class="oi oi-plus" aria-hidden="true"></span>
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="round-container" style="margin-top: 2rem;">
+                        <table class="table">
+                            <thead>
+                                <td><h3 class="configurations-heading">Reference Files</h3></td>
+                                <td>
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="">
+                                        + <span class="oi oi-plus" aria-hidden="true"></span>
+                                    </button>
+                                </td>
+                            </thead>
+                            <tbody>
+                                {% for file in reference_files %}
+                                <tr>
+                                    {% if not file.endswith('.fai') %}
+                                    <td class="col-10 truncate">{{ file }}</td>
+                                    <td class="col-2">
+                                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="">
+                                            X <span class="oi oi-plus" aria-hidden="true"></span>
+                                        </button>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="round-container" style="margin-top: 2rem;">
+                        <table class="table">
+                            <thead>
+                                <td><h3 class="configurations-heading">Gene Source Files</h3></td>
+                                <td>
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="">
+                                        + <span class="oi oi-plus" aria-hidden="true"></span>
+                                    </button>
+                                </td>
+                            </thead>
+                            <tbody>
+                                {% for file in gene_sources %}
+                                <tr>
+                                    <td class="col-10 truncate">{{ file }}</td>
+                                    <td class="col-2">
+                                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="">
+                                            X <span class="oi oi-plus" aria-hidden="true"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="round-container" style="margin-top: 2rem;">
+                        <table class="table">
+                            <thead>
+                                <td><h3 class="configurations-heading">Bed Files</h3></td>
+                                <td>
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="">
+                                        + <span class="oi oi-plus" aria-hidden="true"></span>
+                                    </button>
+                                </td>
+                            </thead>
+                            <tbody>
+                                {% for file in bed_files %}
+                                <tr>
+                                    <td class="col-10 truncate">{{ file }}</td>
+                                    <td class="col-2">
+                                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="">
+                                            X <span class="oi oi-plus" aria-hidden="true"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div> -->
+                </div>
             </div>
         </div>
     </div>
