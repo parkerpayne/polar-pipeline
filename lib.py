@@ -1,10 +1,12 @@
 from tqdm import tqdm
 import subprocess
+import re
 import os
 import math
 import psycopg2
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from bs4 import BeautifulSoup
 
 
 #  __          ________ ____      _____ ______ _______      ________ _____                                             
@@ -209,7 +211,7 @@ def samtoolsImport(input_file):
 #   input_file: input file path
 #   returns: new filepath of the bam, or False if it fails.
     try:
-        run_name = input_file.strip().split('/')[-1].split('.')[0]
+        run_name = input_file.strip().split('/')[-1].split('.fastq')[0]
         working_path = '/'.join(input_file.strip().split('/')[:-1])
         if input_file.endswith('.fastq.gz'):
             process = subprocess.Popen(["pigz", "-dk", run_name+".fastq.gz"], cwd=working_path)
@@ -246,7 +248,7 @@ def minimap2(input_path, reference_path, threads='30'):
                                                                                                        
                                                                                                        
 def viewSortIndex(input_path, threads='30'):
-    root = input_path.split('.fastq')[0]
+    root = input_path.split('.sam')[0]
 
     view_command = f'samtools view -@ {threads} -bo {root}.bam {root}.sam'
     os.system(view_command)
@@ -264,7 +266,12 @@ def viewSortIndex(input_path, threads='30'):
     os.system(rm_command)
     # print(rm_command)
 
-    return f"{root}_sorted.bam"
+    rename_bam = f'mv {root}_sorted.bam {root}.bam'
+    os.system(rename_bam)
+    rename_bam_bai = f'mv {root}_sorted.bam.bai {root}.bam.bai'
+    os.system(rename_bam_bai)
+
+    return f"{root}.bam"
 
 #   _   _ ________   _________ ______ _      ______          __  ______ _    _ _   _  _____ _______ _____ ____  _   _ 
 #  | \ | |  ____\ \ / /__   __|  ____| |    / __ \ \        / / |  ____| |  | | \ | |/ ____|__   __|_   _/ __ \| \ | |
@@ -280,7 +287,7 @@ def nextflow(input_file, output_directory, reference_file, clair3_model_path, th
 #   output_directory: what folder the output and workspace folders will be generated in
 #   reference_file: full path to the reference file being used
 #   clair3_model_path: full path to the clair3 model folder
-    run_name = input_file.strip().split('/')[-1].split('.')[0]
+    run_name = input_file.strip().split('/')[-1].split('.bam')[0].split('.fastq')[0]
     command = f"echo Epididymis0! | sudo -S nextflow run epi2me-labs/wf-human-variation \
         --out_dir {output_directory}/output \
         -w {output_directory}/workspace \
@@ -321,7 +328,7 @@ def nextflow(input_file, output_directory, reference_file, clair3_model_path, th
         return False
 
 def y_nextflow(input_file, output_directory, reference_file, clair3_model_path, threads='30', config='default', workspace_directory='default'):
-    run_name = input_file.strip().split('/')[-1].split('.')[0]
+    run_name = input_file.strip().split('/')[-1].split('.bam')[0].split('.fastq')[0]
     command = f"echo Epididymis0! | sudo -S nextflow run epi2me-labs/wf-human-variation \
         --out_dir {output_directory}/output \
         -w {output_directory}/workspace \
@@ -398,7 +405,7 @@ def parseAlts(evilstinkynogoodline):
 #      \/   |______|_|      |_|     \____/|_| \_|\_____|  |_|  |_____\____/|_| \_|
                                                                                 
                                                                                 
-def vep(input_snv, input_sv, output_snv='output', output_sv='output', threads='30'):
+def vep(input_snv, input_sv, reference_path, threads='30', output_snv='output', output_sv='output'):
 # Runs vep. Params are in list form, so it is easy to add new ones. Same with plugins. The process for installing vep to a new computer
 # is unecissarily difficult, but there is (hopefully) a prepackaged vep folder and guide in the setup tab of the webapp.
 #   input_snv: path to the input snv file (vcf from either princess or nextflow)
@@ -410,15 +417,13 @@ def vep(input_snv, input_sv, output_snv='output', output_sv='output', threads='3
     pc_name = whoami()
     run_name = input_snv.strip().split('/')[-1].split('.')[0]
     if input_snv.endswith('.gz'):
-        process = subprocess.Popen(["pigz", "-d", run_name+".wf_snp.vcf.gz"], cwd='/'.join(input_snv.strip().split('/')[:-1]))
-        stdout, stderr = process.communicate()
+        subprocess.run(["pigz", "-d", run_name+".wf_snp.vcf.gz"], cwd='/'.join(input_snv.strip().split('/')[:-1]))
         input_snv = input_snv.split('.gz')[0]
     if input_sv.endswith('.gz'):
-        process = subprocess.Popen(["pigz", "-d", run_name+".wf_sv.vcf.gz"], cwd='/'.join(input_snv.strip().split('/')[:-1]))
-        stdout, stderr = process.communicate()
+        subprocess.run(["pigz", "-d", run_name+".wf_sv.vcf.gz"], cwd='/'.join(input_snv.strip().split('/')[:-1]))
         input_sv = input_sv.split('.gz')[0]
 
-    start = f'~/ensembl-vep/vep --offline --cache --tab --everything --assembly GRCh38 --fasta /mnt/shared_storage/shared_resources/reference_files/ref.fasta --fork {threads} --buffer_size 20000'
+    start = f'~/ensembl-vep/vep --offline --cache --tab --everything --assembly GRCh38 --fasta {reference_path} --fork {threads} --buffer_size 20000'
     params = [
         ' --sift b',
         ' --polyphen b',
@@ -694,7 +699,7 @@ def mergeFiles(snv_vep_input, sv_vep_input, snipeff_input, sniffles_input, outpu
                 for i in range(len(line)):
                     if line[i] == 'FORMAT':
                         formatindex = i
-                    elif snipeff_input.strip().split('/')[-1].split('.')[0] != line[i]:
+                    elif snipeff_input.strip().split('/')[-1].split('.vcf')[0] != line[i]:
                         snipColumns[line[i]] = i
             continue
         if formatindex:
@@ -738,7 +743,7 @@ def mergeFiles(snv_vep_input, sv_vep_input, snipeff_input, sniffles_input, outpu
                         formatindex = i
                     elif line[i] == 'INFO':
                         infoindex = i
-                    elif sniffles_input.strip().split('/')[-1].split('.')[0] != line[i]:
+                    elif sniffles_input.strip().split('/')[-1].split('.vcf')[0] != line[i]:
                         sniffColumns[line[i]] = i
             continue
         if formatindex:
@@ -1102,3 +1107,167 @@ def intersect(file, bed, output='output'):
     return final_output
 
 
+def qcReport(file_path):
+    qcData = {}
+    with open(file_path) as fp:
+        qcreport = BeautifulSoup(fp, 'html.parser')
+
+    table = qcreport.find("table")
+    for row in table.find_all("tr"):
+        columns = row.find_all("td")
+        metric = columns[0].text
+        value = columns[1].text
+        
+        # print(f"{metric}: {value}")
+        qcData[metric] = value
+
+    pattern = re.compile(r"EZChart_.+")
+    charts = qcreport.find_all(id=pattern)
+    for chart in charts:
+        chartText = str(chart)
+        # print(chartText[:3000])
+        if "Read quality" in chartText:
+            info = chartText.split("'subtext': '")[1].split("'")[0]
+            # print('Read quality:', info)
+            for item in info.split('. '):
+                qcData['Read quality ' + item.lower().split(': ')[0]] = item.lower().split(': ')[1]
+        elif "Read length" in chartText and 'yield' not in chartText:
+            info = chartText.split("'subtext': '")[1].split("'")[0]
+            # print('Read length:', info)
+            for item in info.split('. '):
+                qcData['Read length ' + item.lower().split(': ')[0]] = item.lower().split(': ')[1]
+        elif "Mapping accuracy" in chartText:
+            info = chartText.split("'subtext': '")[1].split("'")[0]
+            # print('Mapping accuracy:', info)
+            qcData['Mapping accuracy'] = info
+        elif "Read coverage" in chartText:
+            info = chartText.split("'subtext': '")[1].split("'")[0]
+            # print('Read coverage', info)
+            qcData['Read coverage'] = info
+
+    pattern = re.compile(r"ParamsTable_.+")
+    table = qcreport.find(id=pattern)
+    for row in table.find_all("tr"):
+        columns = row.find_all("td")
+        if columns != [] and columns[0].text == 'threads':
+            # print('Threads:', columns[1].text)
+            qcData['Threads'] = columns[1].text
+    
+    return qcData
+
+def cnvReport(file_path):
+    cnvData = {}
+
+    with open(file_path) as fp:
+        cnvreport = BeautifulSoup(fp, 'html.parser')
+
+    pattern = re.compile(r"Grid_.+")
+    parent_div = cnvreport.find(id=pattern)
+
+    for child_div in parent_div.find_all('div', class_='container'):
+        header = child_div.find('h3', class_='h5').text.strip()
+        value = child_div.find('p', class_='fs-2').text.strip()
+
+        if value.endswith('bp'):
+            header = header + ' (bp)'
+            value = value.replace('bp', '')
+
+        cnvData[header] = value
+
+    table = cnvreport.find("table")
+    for i in range(len(table.find_all("td"))):
+        metric = table.find_all("th")[i].text
+        value = table.find_all("td")[i].text.strip().replace('\n', ',')
+        cnvData[metric] = value
+
+    table = cnvreport.find(id="versions")
+    for row in table.find_all("tr"):
+        columns = row.find_all("td")
+        if columns != []:
+            metric = columns[0].text
+            value = columns[1].text
+            cnvData[metric] = value
+
+    return cnvData
+
+def snpReport(file_path):
+    snpData = {}
+    with open(file_path) as fp:
+        snpreport = BeautifulSoup(fp, 'html.parser')
+
+    pattern = re.compile(r"Grid_.+")
+    parent_div = snpreport.find(id=pattern)
+
+    for child_div in parent_div.find_all('div', class_='container'):
+        header = child_div.find('h3', class_='h5').text.strip()
+        value = child_div.find('p', class_='fs-2').text.strip()
+
+        snpData[header] = value
+
+    table = snpreport.find(id="versions")
+    for row in table.find_all("tr"):
+        columns = row.find_all("td")
+        if columns != []:
+            metric = columns[0].text
+            value = columns[1].text
+            snpData[metric] = value
+
+    return snpData
+
+def svReport(file_path):
+    svData = {}
+    with open(file_path) as fp:
+        svreport = BeautifulSoup(fp, 'html.parser')
+
+    pattern = re.compile(r"Grid_.+")
+    parent_div = svreport.find(id=pattern)
+
+    for child_div in parent_div.find_all('div', class_='container'):
+        header = child_div.find('h3', class_='h5').text.strip()
+        value = child_div.find('p', class_='fs-2').text.strip()
+
+        svData[header] = value
+
+    pattern = re.compile(r"DataTable_.+")
+    table = svreport.find(id=pattern)
+    
+    sv_types = []
+    for item in table.find_all("tr"):
+        if sv_types == []:
+            for header in item.find_all("th"):
+                sv_types.append(header.text)
+            sv_types = sv_types[1:]
+
+    for i in range(len(sv_types)):
+        for j in range(1, len(table.find_all("tr"))):
+            # print(sv_types[i] + '_' + table.find_all("tr")[j].find("th").text.replace('. ', '_'), table.find_all("tr")[j].find_all("td")[i].text)
+            svData[sv_types[i] + '_' + table.find_all("tr")[j].find("th").text.replace('. ', '_')] = table.find_all("tr")[j].find_all("td")[i].text
+
+    table = svreport.find(id="versions")
+    for row in table.find_all("tr"):
+        columns = row.find_all("td")
+        if columns != []:
+            metric = columns[0].text
+            value = columns[1].text
+            svData[metric] = value
+
+    return svData
+    
+def reportReport(file_path):
+    reportData = {}
+    with open(file_path) as fp:
+        reportreport = BeautifulSoup(fp, 'html.parser')
+    
+    command = reportreport.find("pre", class_="nfcommand")
+    reportData['Nextflow command'] = command.text
+
+    clairModel = command.text.split('--clair3_model_path ')[1].split(' ')[0].split('/')[-1]
+    reportData['clair3 model'] = clairModel
+
+    pc_name = command.text.split('/home/')[1].split('/')[0]
+    reportData['PC name'] = pc_name
+
+    cpuHours = reportreport.find("dd", class_="col-sm-9").text
+    reportData['CPU hours'] = cpuHours
+
+    return reportData

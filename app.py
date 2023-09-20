@@ -86,32 +86,59 @@ def urlencode_filter(s):
 def urldecode_filter(s):
     return urllib.parse.unquote(s)
 
-@app.route('/file_chosen/<path:path>/<clair_model>/<gene_source>/<bed_file>/<reference_file>')
-def file_chosen(path, clair_model, gene_source, bed_file, reference_file):
+@app.route('/trigger_processing', methods=['POST'])
+def trigger_processing():
+    path = request.json.get("path")
+    clair_model = request.json.get("clair")
+    grch_reference = request.json.get("grch_reference")
+    grch_bed = request.json.get("grch_bed")
+    chm_reference = request.json.get("chm_reference")
+    chm_bed = request.json.get("chm_bed")
+    grch_gene = request.json.get("grch_gene")
     
     file_name = path.strip().split('/')[-1].split('.')[0]
-
     current_time = datetime.now().strftime("%Y%m%d%H%M%S")
-    concatenated_string = file_name + current_time
-    id = hashlib.sha256(concatenated_string.encode()).hexdigest()
 
-    try:
-        query = "INSERT INTO progress (file_name, status, id, clair_model, bed_file, reference, gene_source) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        with conn.cursor() as cursor:
-            cursor.execute(query, (file_name, 'waiting', id, clair_model, bed_file, reference_file, gene_source))
-        conn.commit()
-    except Exception as e:
-        print(f"Error updating the database: {e}")
-        conn.rollback()
-    cursor.close()
+    if grch_reference != 'none':
+        concatenated_string = file_name + current_time
+        id = hashlib.sha256(concatenated_string.encode()).hexdigest()
+        process(path, clair_model, grch_gene, grch_gene, grch_reference, id)
+        # print(path, clair_model, grch_reference, grch_bed, grch_gene)
+    if chm_reference != 'none':
+        concatenated_string = file_name + 'T2T' + current_time
+        id = hashlib.sha256(concatenated_string.encode()).hexdigest()
+        # print(path, clair_model, chm_reference, chm_bed)
+
+    return 'hi'
 
 
-
-    process.delay('/'+path, clair_model, gene_source, bed_file, reference_file, id)
+# @app.route('/file_chosen/<path:path>/<clair_model>/<gene_source>/<bed_file>/<reference_file>')
+# def file_chosen(path, clair_model, gene_source, bed_file, reference_file):
     
-    time.sleep(1)
+#     file_name = path.strip().split('/')[-1].split('.')[0]
 
-    return redirect(url_for('dashboard'))
+#     current_time = datetime.now().strftime("%Y%m%d%H%M%S")
+#     concatenated_string = file_name + current_time
+#     id = hashlib.sha256(concatenated_string.encode()).hexdigest()
+
+#     # try:
+#     #     query = "INSERT INTO progress (file_name, status, id, clair_model, bed_file, reference, gene_source) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+#     #     with conn.cursor() as cursor:
+#     #         cursor.execute(query, (file_name, 'waiting', id, clair_model, bed_file, reference_file, gene_source))
+#     #     conn.commit()
+#     # except Exception as e:
+#     #     print(f"Error updating the database: {e}")
+#     #     conn.rollback()
+#     # cursor.close()
+
+#     print(path, clair_model, gene_source, bed_file, reference_file)
+    
+
+#     # process.delay('/'+path, clair_model, gene_source, bed_file, reference_file, id)
+    
+#     time.sleep(1)
+
+#     return redirect(url_for('dashboard'))
 
 # uploading = False
 # @app.route('/upload', methods=['POST'])
@@ -221,14 +248,7 @@ def save_config(computer_name, config_values):
         config.add_section(computer_name)
 
     for key, value in config_values.items():
-        if isinstance(value, bool):
-            key = f"{key}_bool"
-            value = str(value).lower()  # Convert bool value to 'true' or 'false'
-        elif isinstance(value, int):
-            key = f"{key}_int"
-            value = str(value)
-        else:
-            value = str(value)  # Convert other data types to strings
+        value = str(value)  # Convert other data types to strings
 
         config.set(computer_name, key, value)
 

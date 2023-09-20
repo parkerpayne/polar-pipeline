@@ -5,7 +5,6 @@ import sys
 import os
 import configparser
 import subprocess
-import psycopg2
 from datetime import datetime
 
 app = Celery('tasks', broker='pyamqp://polarRabbit:Epididymis0!@10.21.4.63:5672/polarVHost')
@@ -53,7 +52,7 @@ app = Celery('tasks', broker='pyamqp://polarRabbit:Epididymis0!@10.21.4.63:5672/
 
 
 @app.task
-def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, reference_file_name, id, threads):
+def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, reference_file_name, id):
 
     clair_model_path = os.path.join('/mnt/shared_storage/shared_resources/clair_models', clair_model_name)
     gene_source_path = os.path.join('/mnt/shared_storage/shared_resources/gene_source', gene_source_name)
@@ -68,15 +67,22 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
 
     config.read(CONFIG_FILE_PATH)
 
+    if not os.path.isdir(config['General']['output_directory']):
+        update_db(id, 'status', 'output path not found')
+        quit()
+    else: print('output path:', config['General']['output_directory'])
+
     if config.has_section(pc_name):
         threads = config[pc_name]['threads']
     else:
         threads = config['Default']['threads']
 
+    print(f'threads detected: {threads}')
+
     if '/' + pc_name + '/' in input_file_path:
         input_file_path = input_file_path.replace('/mnt', '/home')
 
-    run_name = input_file_path.strip().split('/')[-1].split('.')[0]
+    run_name = input_file_path.strip().split('/')[-1].split('.bam')[0].split('.fastq')[0]
     input_directory = input_file_path.strip().split(run_name)[0]
 
     i = 0
@@ -113,11 +119,13 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
         print('cool ig')
     
     currentTime = datetime.now()
-    formattedTime = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
-    output_dir = f'/mnt/synology3/polar_pipeline/{formattedTime}_{run_name}'
+    formattedTime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_dir = os.path.join(config['General']['output_directory'],f'{formattedTime}_{run_name}')
     
     update_db(id, 'start_time', currentTime)
     
+    # CHANGE FILENAMES TO INCLUDE TIME
+
     if not input_file_path.endswith('.bam'):
         update_db(id, 'status', 'minimap')
 
@@ -141,7 +149,6 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
             update_db(id, 'status', 'failed: minimap')
             update_db(id, 'end_time', datetime.now())
             quit()
-
         
     if checksignal(id) == 'stop':
         abort(working_path, id)
@@ -149,7 +156,7 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     update_db(id, 'status', 'nextflow')
     # princess(working_path, run_name, clair_model_path, pc_name, reference_path)
     try:
-        nextflow(input_file_path, working_path, reference_path, clair_model_path, threads)
+        nextflow(input_file_path, working_path, reference_path, clair_model_path)
     except:
         update_db(id, 'status', 'failed: nextflow')
         update_db(id, 'end_time', datetime.now())
@@ -163,8 +170,7 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     #     update_db(id, 'end_time', datetime.now(), conn)
     #     quit()        
 
-    process = subprocess.Popen(["pigz", "-d", run_name+".wf_snp.vcf.gz"], cwd=f"{working_path}/output")
-    stdout, stderr = process.communicate()
+    subprocess.run(["pigz", "-d", run_name+".wf_snp.vcf.gz"], cwd=f"{working_path}/output")
 
     try:
         outputfile = load_file(os.path.join(working_path, "output", run_name+".wf_snp.vcf"))
@@ -185,7 +191,7 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     
 
     update_db(id, 'status', 'vep')
-    vep(os.path.join(working_path, 'output', run_name+'.sepAlt.wf_snp.vcf'), os.path.join(working_path, 'output', run_name+'.wf_sv.vcf.gz'), threads)
+    vep(os.path.join(working_path, 'output', run_name+'.sepAlt.wf_snp.vcf'), os.path.join(working_path, 'output', run_name+'.wf_sv.vcf.gz'), reference_path, threads)
     if checksignal(id) == 'stop':
         abort(working_path, id)
 
@@ -300,15 +306,8 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
 
     resultdir = os.path.join(working_path, 'output')
 
-    with open(os.path.join(resultdir, run_name+'_merged.bed'), 'w') as opened:
+    with open(os.path.join(variantdir, run_name+'_merged.bed'), 'w') as opened:
         opened.write(''.join(output))
-
-    update_db(id, 'status', 'zipping merged file')
-    print('zipping merged file...')
-    process = subprocess.Popen(["pigz", os.path.join(resultdir, run_name+"_merged.bed")], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["mv", os.path.join(resultdir, run_name+"_merged.bed.gz"), variantdir], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()     
 
     update_db(id, 'status', 'intersecting')
     try:
@@ -344,43 +343,22 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     with open(finalfile, 'w') as openFile:
         openFile.write(''.join(final_output))
 
-    process = subprocess.Popen(["tar", "-cf", "variantfiles.tar", run_name+".sepAlt.wf_snp.vcf", run_name+".wf_sv.vcf", run_name+"_vep_snv.tsv", run_name+"_vep_sv.tsv"], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["pigz", "variantfiles.tar"], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["cp", "variantfiles.tar.gz", variantdir], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["rm", "variantfiles.tar.gz"], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
+    subprocess.run(["mv", run_name+".sepAlt.wf_snp.vcf", run_name+".wf_sv.vcf", run_name+"_vep_snv.tsv", run_name+"_vep_sv.tsv", variantdir], cwd=f"{resultdir}")
 
-    process = subprocess.Popen(["cp", run_name+".haplotagged.bam", run_name+".haplotagged.bam.bai", bamdir], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["rm", run_name+".haplotagged.bam", run_name+".haplotagged.bam.bai"], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
+    subprocess.run(["mv", run_name+".haplotagged.bam", run_name+".haplotagged.bam.bai", bamdir], cwd=f"{resultdir}")
 
-    process = subprocess.Popen(["rm", reference_file_name, reference_file_name+'.fai', reference_file_name+".fa"], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["rm", "-r", "ref_cache"], cwd=f"{resultdir}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["rm", "-r", "workspace"], cwd=f"{working_path}")
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["tar", "-cf", run_name+"_nextflow.tar", "output"], cwd=working_path)
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["pigz", run_name+"_nextflow.tar"], cwd=working_path)
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["cp", run_name+"_nextflow.tar.gz", nextflowdir], cwd=working_path)
-    stdout, stderr = process.communicate()
-    process = subprocess.Popen(["rm", run_name+"_nextflow.tar.gz"], cwd=working_path)
-    stdout, stderr = process.communicate()
+    subprocess.run(["rm", reference_file_name, reference_file_name+'.fai', reference_file_name+".fa"], cwd=f"{resultdir}")
+    subprocess.run(["rm", "-r", "ref_cache"], cwd=f"{resultdir}")
+    subprocess.run(["rm", "-r", "workspace"], cwd=f"{working_path}")
+    subprocess.run(["mv", 'output', nextflowdir], cwd=working_path)
 
-    process = subprocess.Popen(["rm", "-r", id], cwd='/'.join(working_path.strip().split('/')[:-1]))
-    stdout, stderr = process.communicate()
+    subprocess.run(["rm", "-r", id], cwd='/'.join(working_path.strip().split('/')[:-1]))
 
     update_db(id, 'status', 'complete')
 
 
 @app.task
-def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_name, reference_file_name, id, threads):
+def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_name, reference_file_name, id):
     clair_model_path = os.path.join('/mnt/shared_storage/shared_resources/clair_models', clair_model_name)
     gene_source_path = os.path.join('/mnt/shared_storage/shared_resources/gene_source', gene_source_name)
     reference_path = os.path.join('/mnt/shared_storage/shared_resources/reference_files', reference_file_name)
@@ -394,10 +372,17 @@ def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_nam
 
     config.read(CONFIG_FILE_PATH)
 
+    if not os.path.isdir(config['General']['output_directory']):
+        update_db(id, 'status', 'output path not found')
+        quit()
+    else: print('output path:', config['General']['output_directory'])
+
     if config.has_section(pc_name):
         threads = config[pc_name]['threads']
     else:
         threads = config['Default']['threads']
+
+    print(f'Threads detected: {threads}')
 
     if '/' + pc_name + '/' in input_file_path:
         input_file_path = input_file_path.replace('/mnt', '/home')
@@ -440,7 +425,7 @@ def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_nam
     
     currentTime = datetime.now()
     formattedTime = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
-    output_dir = f'/mnt/synology3/polar_pipeline/{formattedTime}_T2T_{run_name}'
+    output_dir = os.path.join(config['General']['output_directory'],f'{formattedTime}_T2T_{run_name}')
     
     update_db(id, 'start_time', currentTime)
     
@@ -489,8 +474,7 @@ def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_nam
     #     update_db(id, 'end_time', datetime.now(), conn)
     #     quit()        
 
-    process = subprocess.Popen(["pigz", "-d", run_name+".wf_snp.vcf.gz"], cwd=f"{working_path}/output")
-    stdout, stderr = process.communicate()
+    subprocess.Popen(["pigz", "-d", run_name+".wf_snp.vcf.gz"], cwd=f"{working_path}/output")
 
     try:
         outputfile = load_file(os.path.join(working_path, "output", run_name+".wf_snp.vcf"))
