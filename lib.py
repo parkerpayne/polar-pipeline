@@ -349,11 +349,11 @@ def y_nextflow(input_file, output_directory, reference_file, clair3_model_path, 
         --depth_intervals \
         --phase_vcf \
         --phase_sv \
-        --threads 30 \
-        --ubam_map_threads 18 \
-        --ubam_sort_threads 6 \
-        --ubam_bam2fq_threads 6 \
-        --merge_threads 30 \
+        --threads 90 \
+        --ubam_map_threads 30 \
+        --ubam_sort_threads 30 \
+        --ubam_bam2fq_threads 30 \
+        --merge_threads 90 \
         --disable_ping"
     try:
         os.system(command)
