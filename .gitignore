@@ -1,5 +1,5 @@
-# Ignore files starting with "."
-.*
+# Ignore files starting with ".n"
+.n*
 # Ignore the __pycache__ folder
 __pycache__/
 # Ignore output folder

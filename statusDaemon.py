@@ -36,12 +36,19 @@ while True:
         """, (name, status))
 
     # Set offline for any names not in statusList
-    cursor.execute("""
-        UPDATE status 
-        SET status = 'offline' 
-        WHERE name NOT IN %s
-    """, (tuple(statusList.keys()),))
+    if statusList:
+        cursor.execute("""
+            UPDATE status 
+            SET status = 'offline' 
+            WHERE name NOT IN %s
+        """, (tuple(statusList.keys()),))
     
+    if not statusList:
+        cursor.execute("""
+            UPDATE status 
+            SET status = 'OFFLINE'
+        """)
+
     conn.commit()
     conn.close()
     sleep(10)

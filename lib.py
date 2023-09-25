@@ -294,8 +294,8 @@ def nextflow(input_file, output_directory, reference_file, clair3_model_path, th
         -profile standard \
         --snp \
         --sv \
+	--str \
         --cnv \
-        --str \
         --bam {input_file} \
         --ref {reference_file} \
         --bam_min_coverage 0.01 \
@@ -463,6 +463,8 @@ def vep(input_snv, input_sv, reference_path, threads='30', output_snv='output', 
         f' --plugin PrimateAI,/home/{pc_name}/vep-resources/PrimateAI_scores_v0.2_GRCh38_sorted.tsv.bgz',
         f' --plugin dbNSFP,/home/{pc_name}/vep-resources/dbNSFP4.4a_grch38.gz,ALL',
         f' --plugin REVEL,/home/{pc_name}/vep-resources/new_tabbed_revel_grch38.tsv.gz',
+        f' --plugin AlphaMissense,file=/home/{pc_name}/vep-resources/AlphaMissense_hg38.tsv.gz',
+        f' --plugin EVE,file=/home/{pc_name}/vep-resources/eve_merged.vcf.gz'
     ]
     
     input_dir = '/'.join(input_snv.strip().split('/')[:-1])
@@ -542,7 +544,7 @@ def buildGeneSourceDict(geneSourceFile):
         outputfile.append(newline)
     return outputfile """
 
-def addToolsColumn_addGeneSource(bed_file, gene_source_file):
+def addToolsColumn(bed_file):
 # This function does two things, probably should have split it up but it avoids an extra loop through the file. It first determines if a tool considers a variant
 # dangerous (deliterious? idk) and if it does it adds it to a total and to a list, then adds both of those to the file in separate columns. This allows for both a
 # ballpark estimate as to how bad a variant is as well as knowing what tools were to blame for that accusation. (how rude of them!)
@@ -551,13 +553,10 @@ def addToolsColumn_addGeneSource(bed_file, gene_source_file):
 #   returns: whole file with added columns for number of tools claiming deliterious on a variant and the tools themselves(the jury perhaps?)
     output_file = []
     columns = getColumns(bed_file)
-    gene_source = buildGeneSourceDict(gene_source_file)
-    winners = [] # [gene] 'winner'
-    gene_counter = {} # [gene] (snv_count, phase, sv_count, total_appearances)
     for line in bed_file:
         tabbed_line = line.strip().split('\t')
         if line.strip().startswith('#'):
-            output_file.append('\t'.join(tabbed_line[:columns['QUAL']] + ['SV_SNV', 'NUM_TOOLS', 'TOOLS', 'GENE_SOURCE'] + tabbed_line[columns['QUAL']:])+'\n')
+            output_file.append('\t'.join(tabbed_line[:columns['QUAL']] + ['SV_SNV', 'NUM_TOOLS', 'TOOLS'] + tabbed_line[columns['QUAL']:])+'\n')
             continue
         start = tabbed_line[:columns['QUAL']]
         gene = tabbed_line[columns['SYMBOL']]
@@ -587,21 +586,38 @@ def addToolsColumn_addGeneSource(bed_file, gene_source_file):
         tools.append('S4,' if 'D' in tabbed_line[columns['SIFT4G_pred']] else '')
         tools.append('RV,' if tabbed_line[columns['REVEL']] != '-' and float(tabbed_line[columns['REVEL']]) > 0.75  else '')
         num_tools = int(len(''.join(tools).replace(',',''))/2)
-        # print('id: ' + id)
-        # print(gene)
+
         if 'Snif' not in id:
             snv_or_sv = 'SNV'
         else:
             num_tools = 6
             snv_or_sv = 'SV'
+        built_line = '\t'.join(start + [snv_or_sv] + [str(num_tools)] + [''.join(tools)] + info)+'\n'
+        output_file.append(built_line)
+
+    return output_file
+
+def addGeneSource(input, gene_source_file):
+    output_file = []
+    columns = getColumns(input)
+    gene_source = buildGeneSourceDict(gene_source_file)
+    for line in input:
+        tabbed_line = line.strip().split('\t')
+        if line.strip().startswith('#'):
+            output_file.append('\t'.join(tabbed_line[:columns['QUAL']] + ['GENE_SOURCE'] + tabbed_line[columns['QUAL']:])+'\n')
+            continue
+        start = tabbed_line[:columns['QUAL']]
+        gene = tabbed_line[columns['SYMBOL']]
+        info = tabbed_line[columns['QUAL']:]
         if gene in gene_source:
             gene_source_info = gene_source[gene]
         else:
             gene_source_info = '-'
-        built_line = '\t'.join(start + [snv_or_sv] + [str(num_tools)] + [''.join(tools)] + [gene_source_info] + info)+'\n'
+        built_line = '\t'.join(start + [gene_source_info] + info)+'\n'
         output_file.append(built_line)
-
     return output_file
+
+
 
 #   _____  ______ __  __  ______      ________   _____  _    _ _____  ______ _____    _____   ______          _______ 
 #  |  __ \|  ____|  \/  |/ __ \ \    / /  ____| |  __ \| |  | |  __ \|  ____|  __ \  |  __ \ / __ \ \        / / ____|
@@ -1022,12 +1038,12 @@ def overlap(chr, start, stop, chrstartline, bed_ranges):
 #   chrstartline: a dictionary that contains the index value for the line that each chromosome starts at
 #   bed_ranges: basically the bed file to intersect with, just loaded (using the load_file function)
     if chr not in chrstartline:
-        return (False, '-')
+        return False
     for range in bed_ranges[chr]:
         bedgene = range[2]
         if not (start > range[1]) and not (stop < range[0]):
-            return (True, bedgene)
-    return (False, '-')
+            return True
+    return False
 
 def intersect(file, bed, output='output'):
 # Function to basically do what bedtools intersect does but slower. we were experiencing an odd bug where when intersecting, the bed file would expand to minimum
@@ -1036,75 +1052,60 @@ def intersect(file, bed, output='output'):
 #   file: input file to be intersected
 #   bed: bed file to intersect with
 #   output: optional 
-    threads = 20
-    bed_ranges = {}
-    for line in bed:
-        tabline = line.strip().split('\t')
-        if tabline[0] in bed_ranges:
-            bed_ranges[tabline[0]] = bed_ranges[tabline[0]] + [(int(tabline[1]), int(tabline[2]), tabline[3])]
-        else:
-            bed_ranges[tabline[0]] = [(int(tabline[1]), int(tabline[2]), tabline[3])]
+    # bed_ranges = {}
+    # for line in bed:
+    #     tabline = line.strip().split('\t')
+    #     if tabline[0] in bed_ranges:
+    #         bed_ranges[tabline[0]] = bed_ranges[tabline[0]] + [(int(tabline[1]), int(tabline[2]), tabline[3])]
+    #     else:
+    #         bed_ranges[tabline[0]] = [(int(tabline[1]), int(tabline[2]), tabline[3])]
 
-    chrstartline = {}
-    bedline = 0
-    while bedline < len(bed):
-        tabline = bed[bedline].strip().split('\t')
-        if tabline[0] not in chrstartline:
-            chrstartline[tabline[0]] = (bedline, 0)
-        else:
-            chrstartline[tabline[0]] = (chrstartline[tabline[0]][0], bedline+1)
-        bedline += 1
-
-
-    header = file[0]
-    output = []
-    columns = getColumns([header])
-    file = file[1:]
-
-    # symbol_col = columns['SYMBOL']
-    # symbol_source_col = columns['SYMBOL_SOURCE']
-
-    print("intersecting...")
-    def process_chunk(chunk):
-        output = []
-        for line in chunk:
-            file_line = line.strip().split('\t')
-            file_chr, file_start, file_stop, file_symbol = file_line[0], int(file_line[1]), int(file_line[2]), file_line[columns['SYMBOL']]
-
-            result = overlap(file_chr, file_start, file_stop, chrstartline, bed_ranges)
-            # newline = line
-            if result[0]:
-                output.append(line)
-            # pbar.update(1)
-
-        return output
+    # chrstartline = {}
+    # bedline = 0
+    # while bedline < len(bed):
+    #     tabline = bed[bedline].strip().split('\t')
+    #     if tabline[0] not in chrstartline:
+    #         chrstartline[tabline[0]] = (bedline, 0)
+    #     else:
+    #         chrstartline[tabline[0]] = (chrstartline[tabline[0]][0], bedline+1)
+    #     bedline += 1
 
 
-    # Assuming you already have 'file' as a list of lines and 'columns' dictionary defined.
-    chunk_size = len(file) // threads
-    file_chunks = [file[i:i + chunk_size] for i in range(0, len(file), chunk_size)]
+    # header = []
+    # output = []
+    # body = []
+
+    # for line in file:
+    #     if line.startswith('#'):
+    #         header.append(line)
+    #     else:
+    #         body.append(line)
+
+    # print("intersecting...")
+    # for line in body:
+    #     file_line = line.strip().split('\t')
+    #     file_chr, file_start, file_stop = file_line[0], int(file_line[1]), int(file_line[2])
+
+    #     if overlap(file_chr, file_start, file_stop, chrstartline, bed_ranges):
+    #         output.append(line)
 
 
-    # Change this number according to your desired number of threads
+    # print("sorting...")
+    # sorted_output = sorted(output, key=custom_sort_key)
 
-    # Create a ThreadPoolExecutor with the desired number of threads
-    with ThreadPoolExecutor(max_workers=threads) as executor:
-        # Map the chunks to the processing function and get the results
-        results = list(executor.map(process_chunk, file_chunks))
+    # final_output = header + sorted_output
 
+    # return final_output
 
-
-    # Combine the results from each thread into a single list
-    output = [line for chunk_result in results for line in chunk_result]
-
-    
-    print("sorting...")
-    sorted_output = sorted(output, key=custom_sort_key)
-
-
-    final_output = [header] + sorted_output
-
-    return final_output
+    intersection = []
+    completed_process = subprocess.run(['bedtools', 'intersect', '-header', '-u', '-a', file, '-b', bed], text=True, capture_output=True)
+    for line in completed_process.stdout.strip().split('\n'):
+        intersection.append(line)
+    if output != 'output':
+        with open(output, 'w') as opened:
+            opened.write('\n'.join(intersection))
+        
+    return intersection
 
 
 def qcReport(file_path):
@@ -1271,3 +1272,57 @@ def reportReport(file_path):
     reportData['CPU hours'] = cpuHours
 
     return reportData
+
+def createRunSummary(output, alignment, cnv, snp, sv, report):
+    with open(os.path.join(output, 'run_summary.txt'), 'w') as opened:
+        qcData = qcReport(alignment)
+        cnvData = cnvReport(cnv)
+        snpData = snpReport(snp)
+        svData = svReport(sv)
+        reportData = reportReport(report)
+        opened.write('Name'+'\t'+output.split('/')[-2]+'\n')
+        for item in qcData:
+            opened.write(item+'\t'+qcData[item]+'\n')
+        for item in cnvData:
+            opened.write(item+'\t'+cnvData[item]+'\n')
+        for item in snpData:
+            opened.write(item+'\t'+snpData[item]+'\n')
+        for item in svData:
+            opened.write(item+'\t'+svData[item]+'\n')
+        for item in reportData:
+            opened.write(item+'\t'+reportData[item]+'\n')
+
+def vcftobed(inputpath):
+
+    header = []
+    output = []
+    format = []
+    refIndex = 0
+    altIndex = 0
+    formatIndex = 0
+    for line in open(inputpath, 'r'):
+        if line.startswith('##'):
+            header.append(line)
+        elif line.startswith('#'):
+            tabbed = line.split('\t')
+            for i in range(len(tabbed)):
+                if tabbed[i] == "REF":
+                    refIndex = i
+                if tabbed[i] == "ALT":
+                    altIndex = i
+                if tabbed[i] == "FORMAT":
+                    formatIndex = i
+            header.append('\t'.join([tabbed[0]] + ['START', 'STOP'] + tabbed[2:formatIndex])+'\t')
+        else:
+            tabbed = line.split('\t')
+            if format == []:
+                for item in tabbed[formatIndex].split(':'):
+                    format.append(item)
+            if 'END=' in line:
+                output.append('\t'.join(tabbed[:2] + [line.split('END=')[1].split(';')[0]] + tabbed[2:formatIndex] + [tabbed[formatIndex+1].replace(':', '\t')]))
+            elif refIndex != 0 and altIndex != 0:
+                stop = int(tabbed[1]) + max(0, int(len(tabbed[refIndex]))-int(len(tabbed[altIndex])))
+                output.append('\t'.join(tabbed[:2] + [str(stop)] + tabbed[2:formatIndex] + [tabbed[formatIndex+1].replace(':', '\t')]))
+    with open(inputpath.replace('.vcf', '_bedded.bed'), 'w') as opened:
+        opened.write(''.join(header + ['\t'.join(format),'\n']+output))
+    return header + output

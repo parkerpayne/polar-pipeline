@@ -55,9 +55,15 @@ app = Celery('tasks', broker='pyamqp://polarRabbit:Epididymis0!@10.21.4.63:5672/
 def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, reference_file_name, id):
 
     clair_model_path = os.path.join('/mnt/shared_storage/shared_resources/clair_models', clair_model_name)
-    gene_source_path = os.path.join('/mnt/shared_storage/shared_resources/gene_source', gene_source_name)
+    gene_source_path = []
+    for name in gene_source_name:
+        gene_source_path.append(os.path.join('/mnt/shared_storage/shared_resources/gene_source',name))
+    # gene_source_path = os.path.join('/mnt/shared_storage/shared_resources/gene_source', gene_source_name)
     reference_path = os.path.join('/mnt/shared_storage/shared_resources/reference_files', reference_file_name)
-    bed_file_path = os.path.join('/mnt/shared_storage/shared_resources/bed_files', bed_file_name)
+    bed_file_path = []
+    for name in bed_file_name:
+        bed_file_path.append(os.path.join('/mnt/shared_storage/shared_resources/bed_files',name))
+    # bed_file_path = os.path.join('/mnt/shared_storage/shared_resources/bed_files', bed_file_name)
 
     pc_name = whoami()
 
@@ -125,6 +131,10 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     update_db(id, 'start_time', currentTime)
     
     # CHANGE FILENAMES TO INCLUDE TIME
+    run_name = formattedTime + '_' + run_name
+
+    subprocess.run(["mv", os.path.join(working_path, input_file_path.split('/')[-1]), os.path.join(working_path, run_name+'.'+input_file_path.split('/')[-1].split('.')[-1])])
+    input_file_path = os.path.join(working_path, run_name+'.'+input_file_path.split('/')[-1].split('.')[-1])
 
     if not input_file_path.endswith('.bam'):
         update_db(id, 'status', 'minimap')
@@ -132,7 +142,6 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
         print('input: ' + working_path)
         print('output file destination: ' + output_dir)
 
-        input_file_path = os.path.join(working_path, input_file_path.strip().split('/')[-1])
 
         try:
             input_file_path = minimap2(input_file_path, reference_path, threads)
@@ -156,7 +165,7 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     update_db(id, 'status', 'nextflow')
     # princess(working_path, run_name, clair_model_path, pc_name, reference_path)
     try:
-        nextflow(input_file_path, working_path, reference_path, clair_model_path)
+        nextflow(input_file_path, working_path, reference_path, clair_model_path, threads)
     except:
         update_db(id, 'status', 'failed: nextflow')
         update_db(id, 'end_time', datetime.now())
@@ -243,11 +252,6 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
         print("found all files for run " + run_name + "!")
         print("vep snv: "+vep_snv_file, "vep sv: "+vep_sv_file, "snipeff: "+snipeff_file, "sniffles: "+sniffles_file, sep="\n")
 
-    print('loading supplementary files...')
-    bed = load_file(bed_file_path)
-    print('\tloaded bed!')
-    gene_source_file = load_file(gene_source_path)
-    print('\tloaded gene source!')
 
     update_db(id, 'status', 'merging')
 
@@ -273,7 +277,10 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     variantdir = os.path.join(output_dir, '2_variant_files')
     if not os.path.exists(variantdir):
         os.mkdir(variantdir)
-    finaldir = os.path.join(output_dir, '3_final_candidates')
+    intersectdir = os.path.join(output_dir, '3_intersect')
+    if not os.path.exists(intersectdir):
+        os.mkdir(intersectdir)
+    finaldir = os.path.join(output_dir, '4_gene_source')
     if not os.path.exists(finaldir):
         os.mkdir(finaldir) 
 
@@ -281,11 +288,11 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
         abort(working_path, id)
 
     update_db(id, 'status', 'tabulating tools')
-    print('adding tools and gene source...')
+    print('adding tools...')
     try:
-        output = addToolsColumn_addGeneSource(output, gene_source_file)
+        output = addToolsColumn(output)
     except:
-        update_db(id, 'status', 'failed: adding tools and gene source')
+        update_db(id, 'status', 'failed: adding tools')
         update_db(id, 'end_time', datetime.now())
         quit()
 
@@ -308,41 +315,78 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
 
     with open(os.path.join(variantdir, run_name+'_merged.bed'), 'w') as opened:
         opened.write(''.join(output))
+    with open(os.path.join(variantdir, run_name+'_merged_N0.bed'), 'w') as nozeros:
+        for line in output:
+            if line.startswith('#'): nozeros.write(line)
+            if line.strip().split('\t')[8] != '0':
+                nozeros.write(line)
+    with open('/'.join(working_path.split('/')[:-1])+'temp.bed', 'w') as opened:
+        opened.write(''.join(output))
+    
+    for i in range(len(bed_file_path)):
 
-    update_db(id, 'status', 'intersecting')
-    try:
-        output = intersect(output, bed)
-    except:
-        update_db(id, 'status', 'failed: intersection')
-        update_db(id, 'end_time', datetime.now())
-        quit()
+        update_db(id, 'status', 'intersecting')
 
-    update_db(id, 'status', 'compiling candidates')
-    print('finding candidates...')
-    try:
-        output = findCandidates(output)
-    except:
-        update_db(id, 'status', 'failed: find candidates')
-        update_db(id, 'end_time', datetime.now())
-        quit()
+        output = intersect('/'.join(working_path.split('/')[:-1])+'temp.bed', bed_file_path[i])
 
-    columns = getColumns(output)
-    final_output = []
-    for line in output:
-        tabbed_line = line.strip().split('\t')
-        newline = tabbed_line[:columns['PRECISION']] + [tabbed_line[columns['SYMBOL']]] + tabbed_line[columns['PRECISION']:]
-        final_output.append('\t'.join(newline)+'\n')
+        if gene_source_name[i] == "No gene source":
+            gene_source_file = load_file(gene_source_path[i])
+            output = addGeneSource(output, gene_source_file)
+            finalfile = os.path.join(finaldir, run_name + '_' + bed_file_name[i].replace('.bed', '.vcf'))
+            with open(finalfile, 'w') as openFile:
+                openFile.write('\n'.join(output))
+        else:
+            finalfile = os.path.join(finaldir, run_name + '_' + bed_file_name[i].replace('.bed', f'_{gene_source_name[i].split(".txt")[0]}.vcf'))
+            with open(finalfile, 'w') as openFile:
+                openFile.write('\n'.join(output))
 
-    print('done!')
+        # if not gene_source_name[i] == "No gene source":
+        #     gene_source_file = load_file(gene_source_path[i])
+        #     print('\tloaded gene source!')
+        # try:
+        #     bedoutput = intersect('/'.join(working_path.split('/')[:-1])+'temp.bed', bed_file_path[i], os.path.join(intersectdir, run_name + '_' + bed_file_name[i].replace('.bed', '.vcf')))
+        # except:
+        #     update_db(id, 'status', 'failed: intersection')
+        #     update_db(id, 'end_time', datetime.now())
+        #     quit()
+
+        # # with open(os.path.join(intersectdir, run_name + '_' + bed_file_name[i].replace('.bed', '.vcf')), 'w') as opened:
+        # #     opened.write(''.join(bedoutput))
+
+        # if not gene_source_name[i] == 'No gene source':
+        #     update_db(id, 'status', 'adding gene source')
+        #     try:
+        #         bedoutput = addGeneSource(bedoutput, gene_source_file)
+        #     except:
+        #         update_db(id, 'status', 'failed: add gene source')
+        #         update_db(id, 'end_time', datetime.now())
+        #         quit()
+            # update_db(id, 'status', 'compiling candidates')
+            # print('finding candidates...')
+            # try:
+            #     output = findCandidates(output)
+            # except:
+            #     update_db(id, 'status', 'failed: find candidates')
+            #     update_db(id, 'end_time', datetime.now())
+            #     quit()
+
+            # columns = getColumns(output)
+            # final_output = []
+            # for line in output:
+            #     tabbed_line = line.strip().split('\t')
+            #     newline = tabbed_line[:columns['PRECISION']] + [tabbed_line[columns['SYMBOL']]] + tabbed_line[columns['PRECISION']:]
+            #     final_output.append('\t'.join(newline)+'\n')
+
+            # finalfile = os.path.join(finaldir, run_name + '_' + bed_file_name[i].replace('.bed', f'_{gene_source_name[i].split(".txt")[0]}.vcf'))
+            # with open(finalfile, 'w') as openFile:
+            #     openFile.write(''.join(output))
+
+        print('done!')
+
 
     update_db(id, 'status', 'transferring completed files')
     currentTime = datetime.now()
     update_db(id, 'end_time', currentTime)
-
-    finalfile = os.path.join(finaldir, run_name+'_final.vcf')
-    with open(finalfile, 'w') as openFile:
-        openFile.write(''.join(final_output))
-
     subprocess.run(["mv", run_name+".sepAlt.wf_snp.vcf", run_name+".wf_sv.vcf", run_name+"_vep_snv.tsv", run_name+"_vep_sv.tsv", variantdir], cwd=f"{resultdir}")
 
     subprocess.run(["mv", run_name+".haplotagged.bam", run_name+".haplotagged.bam.bai", bamdir], cwd=f"{resultdir}")
@@ -352,17 +396,39 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     subprocess.run(["rm", "-r", "workspace"], cwd=f"{working_path}")
     subprocess.run(["mv", 'output', nextflowdir], cwd=working_path)
 
+    createRunSummary(
+        nextflowdir, 
+        os.path.join(nextflowdir, 'output', 'wf-human-variation-alignment-report.html'), 
+        os.path.join(nextflowdir, 'output', f'{run_name}.wf-human-cnv-report.html'),
+        os.path.join(nextflowdir, 'output', f'{run_name}.wf-human-snp-report.html'),
+        os.path.join(nextflowdir, 'output', f'{run_name}.wf-human-sv-report.html'),
+        os.path.join(nextflowdir, 'output', 'execution', 'report.html'))
+
     subprocess.run(["rm", "-r", id], cwd='/'.join(working_path.strip().split('/')[:-1]))
 
     update_db(id, 'status', 'complete')
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 @app.task
-def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_name, reference_file_name, id):
+def processT2T(input_file_path, clair_model_name, bed_file_name, reference_file_name, id):
     clair_model_path = os.path.join('/mnt/shared_storage/shared_resources/clair_models', clair_model_name)
-    gene_source_path = os.path.join('/mnt/shared_storage/shared_resources/gene_source', gene_source_name)
     reference_path = os.path.join('/mnt/shared_storage/shared_resources/reference_files', reference_file_name)
-    bed_file_path = os.path.join('/mnt/shared_storage/shared_resources/bed_files', bed_file_name)
+    bed_file_path = []
+    for name in bed_file_name:
+        bed_file_path.append(os.path.join('/mnt/shared_storage/shared_resources/bed_files', name))
+    # bed_file_path = os.path.join('/mnt/shared_storage/shared_resources/bed_files', bed_file_name)
 
     pc_name = whoami()
 
@@ -382,12 +448,13 @@ def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_nam
     else:
         threads = config['Default']['threads']
 
-    print(f'Threads detected: {threads}')
+    print(f'threads detected: {threads}')
+
 
     if '/' + pc_name + '/' in input_file_path:
         input_file_path = input_file_path.replace('/mnt', '/home')
 
-    run_name = input_file_path.strip().split('/')[-1].split('.')[0]
+    run_name = input_file_path.strip().split('/')[-1].split('.bam')[0].split('.fastq')[0]
     input_directory = input_file_path.strip().split(run_name)[0]
 
     i = 0
@@ -424,18 +491,23 @@ def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_nam
         print('cool ig')
     
     currentTime = datetime.now()
-    formattedTime = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
-    output_dir = os.path.join(config['General']['output_directory'],f'{formattedTime}_T2T_{run_name}')
+    formattedTime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    
     
     update_db(id, 'start_time', currentTime)
-    
+    # CHANGE FILENAMES TO INCLUDE TIME
+    run_name = formattedTime + '_' + run_name + '_T2T'
+
+    output_dir = os.path.join(config['General']['output_directory'],f'{run_name}')
+
+    subprocess.run(["mv", os.path.join(working_path, input_file_path.split('/')[-1]), os.path.join(working_path, run_name+'.'+input_file_path.split('/')[-1].split('.')[-1])])
+    input_file_path = os.path.join(working_path, run_name+'.'+input_file_path.split('/')[-1].split('.')[-1])
+
     if not input_file_path.endswith('.bam'):
         update_db(id, 'status', 'minimap')
 
         print('input: ' + working_path)
         print('output file destination: ' + output_dir)
-
-        input_file_path = os.path.join(working_path, input_file_path.strip().split('/')[-1])
 
         try:
             input_file_path = minimap2(input_file_path, reference_path, threads)
@@ -452,7 +524,6 @@ def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_nam
             update_db(id, 'status', 'failed: minimap')
             update_db(id, 'end_time', datetime.now())
             quit()
-
         
     if checksignal(id) == 'stop':
         abort(working_path, id)
@@ -474,21 +545,12 @@ def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_nam
     #     update_db(id, 'end_time', datetime.now(), conn)
     #     quit()        
 
-    subprocess.Popen(["pigz", "-d", run_name+".wf_snp.vcf.gz"], cwd=f"{working_path}/output")
+    subprocess.run(["pigz", "-d", run_name+".wf_sv.vcf.gz"], cwd=f"{working_path}/output")
 
-    try:
-        outputfile = load_file(os.path.join(working_path, "output", run_name+".wf_snp.vcf"))
-    except:
+    if not os.path.isfile(os.path.join(working_path, "output", run_name+".wf_sv.vcf")):
         update_db(id, 'status', 'failed: nextflow')
         update_db(id, 'end_time', datetime.now())
         quit()
-
-
-    '''
-            FIRST OUTPUT GENERATED
-    '''
-
-    resultdir = os.path.join(working_path, 'output')
 
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
@@ -498,14 +560,60 @@ def processT2T(input_file_path, clair_model_name, gene_source_name, bed_file_nam
     bamdir = os.path.join(output_dir, '1_bam')
     if not os.path.exists(bamdir):
         os.mkdir(bamdir)
+    intersectdir = os.path.join(output_dir, '2_intersect')
+    if not os.path.exists(intersectdir):
+        os.mkdir(intersectdir)
 
     if checksignal(id) == 'stop':
         abort(working_path, id)
 
-    subprocess.run(['rm', '-r', 'workspace'], cwd=working_path)
-    subprocess.run(['rm', '-r', 'ref_cache'], cwd=resultdir)
-    subprocess.run(['mv', run_name+'_sorted.bam', run_name+'_sorted.bam.bai', bamdir], cwd=working_path)
-    subprocess.run(['mv', 'output', nextflowdir], cwd=working_path)
+    try:
+        vcftobed(os.path.join(working_path, 'output', run_name+'.wf_sv.vcf'))
+    except:
+        update_db(id, 'status', 'failed: vcftobed')
+        update_db(id, 'end_time', datetime.now())
+        quit()
+
+    
+
+    # update_db(id, 'status', 'collapsing duplicate rows')
+    # print('collapsing duplicate rows...')
+    # try:
+    #     output = collapseDuplicateRows(output)
+    # except:
+    #     update_db(id, 'status', 'failed: collapsing duplicate rows')
+    #     update_db(id, 'end_time', datetime.now())
+    #     quit()
+
+    # if checksignal(id) == 'stop':
+    #     abort(working_path, id)
+
+    resultdir = os.path.join(working_path, 'output')
+    
+    
+    for i in range(len(bed_file_path)):
+        update_db(id, 'status', 'intersecting')
+        try:
+            intersect(os.path.join(working_path, 'output', run_name+'.wf_sv_bedded.bed'), bed_file_path[i], os.path.join(intersectdir, run_name+'_'+bed_file_name[i].replace('.bed', '.vcf')))
+        except:
+            update_db(id, 'status', 'failed: intersection')
+            update_db(id, 'end_time', datetime.now())
+            quit()
+
+        print('done!')
+
+
+    update_db(id, 'status', 'transferring completed files')
+    currentTime = datetime.now()
+    update_db(id, 'end_time', currentTime)
+
+    subprocess.run(["mv", run_name+".bam", run_name+".bam.bai", bamdir], cwd=f"{working_path}")
+
+    subprocess.run(["rm", reference_file_name, reference_file_name+'.fai', reference_file_name+".fa"], cwd=f"{resultdir}")
+    subprocess.run(["rm", "-r", "ref_cache"], cwd=f"{resultdir}")
+    subprocess.run(["rm", "-r", "workspace"], cwd=f"{working_path}")
+    subprocess.run(["mv", 'output', nextflowdir], cwd=working_path)
+
     subprocess.run(["rm", "-r", id], cwd='/'.join(working_path.strip().split('/')[:-1]))
 
     update_db(id, 'status', 'complete')

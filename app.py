@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, send_from_directory
 from wtforms import StringField, SubmitField
+from tasks import process, processT2T
 from flask_wtf import FlaskForm
 from datetime import datetime
 from lib import update_db
-from tasks import process
 import urllib.parse
 import configparser
 import subprocess
@@ -99,17 +99,39 @@ def trigger_processing():
     file_name = path.strip().split('/')[-1].split('.')[0]
     current_time = datetime.now().strftime("%Y%m%d%H%M%S")
 
+    
+
     if grch_reference != 'none':
         concatenated_string = file_name + current_time
         id = hashlib.sha256(concatenated_string.encode()).hexdigest()
-        process(path, clair_model, grch_gene, grch_gene, grch_reference, id)
+        try:
+            query = "INSERT INTO progress (file_name, status, id, clair_model, bed_file, reference, gene_source) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            with conn.cursor() as cursor:
+                cursor.execute(query, (file_name, 'waiting', id, clair_model, ', '.join(grch_bed), grch_reference, ', '.join(grch_gene)))
+            conn.commit()
+        except Exception as e:
+            print(f"Error updating the database: {e}")
+            conn.rollback()
+        cursor.close()
+        process.delay(path, clair_model, grch_gene, grch_bed, grch_reference, id)
         # print(path, clair_model, grch_reference, grch_bed, grch_gene)
     if chm_reference != 'none':
+        file_name = file_name+'_T2T'
         concatenated_string = file_name + 'T2T' + current_time
         id = hashlib.sha256(concatenated_string.encode()).hexdigest()
+        try:
+            query = "INSERT INTO progress (file_name, status, id, clair_model, bed_file, reference, gene_source) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            with conn.cursor() as cursor:
+                cursor.execute(query, (file_name, 'waiting', id, clair_model, ', '.join(chm_bed), chm_reference, 'N/A'))
+            conn.commit()
+        except Exception as e:
+            print(f"Error updating the database: {e}")
+            conn.rollback()
+        cursor.close()
+        processT2T.delay(path, clair_model, chm_bed, chm_reference, id)
         # print(path, clair_model, chm_reference, chm_bed)
 
-    return 'hi'
+    return redirect(url_for('dashboard'))
 
 
 # @app.route('/file_chosen/<path:path>/<clair_model>/<gene_source>/<bed_file>/<reference_file>')
@@ -403,7 +425,7 @@ def info(id):
 
         folder_list = os.listdir('/home/threadripper/shared_storage/workspace')
         
-        statsPath = os.path.join('/mnt/synology3/polar_pipeline', startTime.replace(' ', '_').replace(':', '.')+'_'+file_name, '0_nextflow/run_summary.txt')
+        statsPath = os.path.join('/mnt/synology3/polar_pipeline', startTime.replace(' ', '_').replace(':', '-')+'_'+file_name, '0_nextflow/run_summary.txt')
         if os.path.isfile(statsPath):
             rows = []
             for line in open(statsPath, 'r'):
@@ -412,10 +434,26 @@ def info(id):
         else:
             rows = []
         
+        if rows == []:
+            statsPath = os.path.join('/mnt/synology3/polar_pipeline', startTime.replace(' ', '_').replace(':', '.')+'_'+file_name, '0_nextflow/run_summary.txt')
+            if os.path.isfile(statsPath):
+                rows = []
+                for line in open(statsPath, 'r'):
+                    splitline = line.split('\t')
+                    rows.append([splitline[0], splitline[1]])
+            else:
+                rows = []
+        
         clair_model = row[7]
-        bed_file = row[8]
+        bed_file = row[8].split(',')
         reference = row[9]
         gene_source = row[10]
+        if gene_source == 'N/A':
+            gene_source = []
+            for item in bed_file:
+                gene_source.append('N/A')
+        else:
+            gene_source = row[10].split(',')
         
         return render_template('info.html', file_name = file_name, startTime = startTime, endTime = endTime, status = status, runtime=runtime, folder_list = folder_list, computer=computer, id=id, rows=rows, clair_model=clair_model, bed_file=bed_file, reference=reference, gene_source=gene_source)
     except Exception as e:
