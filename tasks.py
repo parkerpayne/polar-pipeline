@@ -86,6 +86,7 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     print(f'threads detected: {threads}')
 
     if '/' + pc_name + '/' in input_file_path:
+        print('file is local!')
         input_file_path = input_file_path.replace('/mnt', '/home')
 
     run_name = input_file_path.strip().split('/')[-1].split('.bam')[0].split('.fastq')[0]
@@ -137,6 +138,11 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     input_file_path = os.path.join(working_path, run_name+'.'+input_file_path.split('/')[-1].split('.')[-1])
 
     if not input_file_path.endswith('.bam'):
+
+        if input_file_path.endswith('.fastq.gz'):
+            subprocess.run(['pigz', '-d', input_file_path], cwd=working_path)
+            input_file_path = input_file_path.replace('.fastq.gz', '.fastq')
+
         update_db(id, 'status', 'minimap')
 
         print('input: ' + working_path)
@@ -329,14 +335,14 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
 
         output = intersect('/'.join(working_path.split('/')[:-1])+'temp.bed', bed_file_path[i])
 
-        if gene_source_name[i] == "No gene source":
+        if gene_source_name[i] != "No gene source":
             gene_source_file = load_file(gene_source_path[i])
             output = addGeneSource(output, gene_source_file)
-            finalfile = os.path.join(finaldir, run_name + '_' + bed_file_name[i].replace('.bed', '.vcf'))
-            with open(finalfile, 'w') as openFile:
-                openFile.write('\n'.join(output))
-        else:
             finalfile = os.path.join(finaldir, run_name + '_' + bed_file_name[i].replace('.bed', f'_{gene_source_name[i].split(".txt")[0]}.vcf'))
+            with open(finalfile, 'w') as openFile:
+                openFile.write(''.join(output))
+        else:
+            finalfile = os.path.join(intersectdir, run_name + '_' + bed_file_name[i].replace('.bed', '.vcf'))
             with open(finalfile, 'w') as openFile:
                 openFile.write('\n'.join(output))
 

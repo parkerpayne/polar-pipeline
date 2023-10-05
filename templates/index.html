@@ -151,6 +151,9 @@
                         <a class="nav-link" href="{{ url_for('id') }}">ID Generator</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('figuregenerator') }}">Protein Figures</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('configuration') }}">Configuration</a>
                     </li>
                     <li class="nav-item">
@@ -366,7 +369,7 @@
                 chm_bed_files = getSelectedBedFiles("chm13");
             }
 
-            if(grch_reference_file == 'none' || chm_reference_file == 'none'){
+            if(grch_reference_file == 'none' && chm_reference_file == 'none'){
                 alert('Reference file is required.');
                 return;
             }

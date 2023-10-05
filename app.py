@@ -10,6 +10,7 @@ import subprocess
 import psycopg2
 import hashlib
 import time
+import svg
 import os
 
 
@@ -226,19 +227,17 @@ def dashboard():
     
 @app.route('/deleteRun/<string:id>')
 def deleteRun(id):
-    print(id)
-    # conn = psycopg2.connect(**db_config)
-    # try:
-    #     query = f"DELETE FROM progress WHERE id = '{id}'"
-    #     with conn.cursor() as cursor:
-    #         cursor.execute(query)
-    #         print(query)
-    #     conn.commit()
-    # except Exception as e:
-    #     print(f"Error updating the database: {e}")
-    #     conn.rollback()
-    # finally:
-    #     conn.close()
+    conn = psycopg2.connect(**db_config)
+    try:
+        query = f"DELETE FROM progress WHERE id = '{id}'"
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+        conn.commit()
+    except Exception as e:
+        print(f"Error updating the database: {e}")
+        conn.rollback()
+    finally:
+        conn.close()
     return redirect(url_for('dashboard'))
 
 # Function to read the config.ini file and return the configuration values as a dictionary
@@ -312,6 +311,347 @@ def configuration():
         config_values = read_config()
         return render_template('configuration.html', computer_name=None, config_values=config_values, all_configurations=all_configurations, clair_models=clair_models, bed_files=bed_files, gene_sources=gene_sources, reference_files=reference_files)
 
+@app.route('/figuregenerator')
+def figuregenerator():
+    return render_template('figuregenerator.html')
+
+def customsortfeatures(feature):
+    num = -int(feature[1])
+    return num
+
+@app.route('/generatefigure', methods=['POST'])
+def generatefigure():
+    homo = request.json.get("homo")
+    abproteinname = request.json.get("abproteinname")
+    proteinname = request.json.get("proteinname")
+
+    topbar = []
+    bottombar = []
+    leftfeatureelements = []
+    rightfeatureelements = []
+    homobar = []
+    homofeatureelements = []
+
+    base = [
+        svg.Rect( # BACKGROUND
+            fill="white",
+            x=0,
+            y=0,
+            width=720,
+            height=480
+        ),
+        svg.Text( # PROTEIN NAME
+            text=f'{abproteinname} | {proteinname}',
+            x=5,
+            y=45,
+            fill="black",
+            font_family="Sans,Arial",
+            font_weight="bold",
+            font_size="30",
+            font_stretch="ultra-condensed"
+        ),
+    ]
+
+    if not homo:
+        leftlen = request.json.get("leftlen")
+        leftstructures = request.json.get("leftstructures")
+        rightlen = request.json.get("rightlen")
+        rightstructures = request.json.get("rightstructures")
+        leftfeatures = request.json.get("leftfeatures")
+        rightfeatures = request.json.get("rightfeatures")
+
+        maxlen = max(int(leftlen), int(rightlen))
+
+        base.append(svg.Line( # FIRST LINE
+            stroke_width=5,
+            stroke="grey",
+            x1=50,
+            y1=200,
+            x2=50+((int(leftlen)/maxlen) * 550) + ((1/maxlen) * 550),
+            y2=200
+        ))
+        base.append(svg.Line( # SECOND LINE
+            stroke_width=5,
+            stroke="grey",
+            x1=50,
+            y1=360,
+            x2=50+((int(rightlen)/maxlen) * 550) + ((1/maxlen) * 550),
+            y2=360
+        ))
+        base.append(svg.Text( # 0|1 TEXT
+            text='0|1',
+            x=5,
+            y=205,
+            fill="black",
+            font_family="monospace",
+            stroke_width=1,
+            font_size=20
+        ))
+        base.append(svg.Text( # 1|0 TEXT
+            text='1|0',
+            x=5,
+            y=365,
+            fill="black",
+            font_family="monospace",
+            stroke_width=1,
+            font_size=20
+        ))
+        base.append(svg.Text( # TOP AA LENGTH
+            text=f'{leftlen} AA',
+            x=50+((int(leftlen)/maxlen) * 550) + ((1/maxlen) * 550) + 10,
+            y=205,
+            fill="black",
+            font_family="monospace",
+            stroke_width=1,
+            font_size=20
+        ))
+        base.append(svg.Text( # BOTTOM AA LENGTH
+            text=f'{rightlen} AA',
+            x=50+((int(rightlen)/maxlen) * 550) + ((1/maxlen) * 550) + 10,
+            y=365,
+            fill="black",
+            font_family="monospace",
+            stroke_width=1,
+            font_size=20
+        ))
+
+        for item in leftstructures:
+            if len(item) != 4: continue
+            fontsize = 20
+            if (len(item[0]) * fontsize * (3/5)) > (((int(item[2])-int(item[1]))/maxlen)*550):
+                fontsize = (((((int(item[2])-int(item[1]))/maxlen)*550) * 0.9) / (3/5)) / len(item[0])
+            topbar.append(
+                svg.Rect(
+                    fill=item[3],
+                    x=50+((int(item[1])/maxlen)*550),
+                    y=185,
+                    width=(((int(item[2])-int(item[1]))/maxlen)*550),
+                    height=30,
+                )
+            )
+            fontcol = "black"
+            if item[0] == "DEGEN": fontcol="red"
+            print(50+((int(item[1])+int(item[2]))/2))
+            topbar.append(
+                svg.Text(
+                    text=item[0],
+                    x=50+((((int(item[1])+int(item[2]))/2)/maxlen)*550)-(fontsize*(3/5)*len(item[0])/2),
+                    y=205,
+                    fill=fontcol,
+                    font_family="monospace",
+                    font_size=fontsize
+                )
+            )
+            
+        for item in rightstructures:
+            if len(item) != 4: continue
+            fontsize = 20
+            if (len(item[0]) * fontsize * (3/5)) > (((int(item[2])-int(item[1]))/maxlen)*550):
+                fontsize = (((((int(item[2])-int(item[1]))/maxlen)*550) * 0.9) / (3/5)) / len(item[0])
+            bottombar.append(
+                svg.Rect(
+                    fill=item[3],
+                    x=50+((int(item[1])/maxlen)*550),
+                    y=345,
+                    width=(((int(item[2])-int(item[1]))/maxlen)*550),
+                    height=30,
+                )
+            )
+            fontcol = "black"
+            if item[0] == "DEGEN": fontcol="red"
+            bottombar.append(
+                svg.Text(
+                    text=item[0],
+                    x=50+((((int(item[1])+int(item[2]))/2)/maxlen)*550)-(fontsize*(3/5)*len(item[0])/2),
+                    y=365,
+                    fill=fontcol,
+                    font_family="monospace",
+                    font_size=fontsize
+                )
+            )
+        
+        leftfeaturestemp = sorted([x for x in leftfeatures if x], key=customsortfeatures)
+        leftfeatureswithoverlap = []
+        for i in range(len(leftfeaturestemp)):
+            itemlen = (len(leftfeaturestemp[i][0])/maxlen)*(maxlen/5) * ((100/maxlen)*600)
+            height = 0
+            if i != 0:
+                if ((int(leftfeaturestemp[i][1])/maxlen)*600)+int(itemlen) >= ((int(leftfeaturestemp[i-1][1])/maxlen)*600):
+                    height = int(leftfeatureswithoverlap[i-1][2])+30
+            leftfeatureswithoverlap.append(leftfeaturestemp[i]+[height])
+            print(leftfeatureswithoverlap)
+        for item in leftfeatureswithoverlap:
+            leftfeatureelements.append(
+                svg.Line(
+                    stroke_width=3,
+                    stroke="red",
+                    x1=50+((int(item[1])/maxlen) * 550),
+                    y1=185,
+                    x2=50+((int(item[1])/maxlen) * 550),
+                    y2=155-item[2]
+                )
+            )
+            leftfeatureelements.append(
+                svg.Text(
+                    text=item[0],
+                    x=50 + ((int(item[1]) / maxlen) * 550) + 6,
+                    y=170-item[2],
+                    font_family="monospace",
+                    font_size=20
+                )
+            )
+            
+        rightfeaturestemp = sorted([x for x in rightfeatures if x], key=customsortfeatures)
+        rightfeatureswithoverlap = []
+        for i in range(len(rightfeaturestemp)):
+            itemlen = (len(rightfeaturestemp[i][0])/maxlen)*(maxlen/5) * ((100/maxlen)*600)
+            height = 0
+            if i != 0:
+                if ((int(rightfeaturestemp[i][1])/maxlen)*600)+int(itemlen) >= ((int(rightfeaturestemp[i-1][1])/maxlen)*600):
+                    height = int(rightfeatureswithoverlap[i-1][2])+30
+            rightfeatureswithoverlap.append(rightfeaturestemp[i]+[height])
+            print(rightfeatureswithoverlap)
+        for item in rightfeatureswithoverlap:
+            rightfeatureelements.append(
+                svg.Line(
+                    stroke_width=3,
+                    stroke="red",
+                    x1=50+((int(item[1])/maxlen) * 550),
+                    y1=345,
+                    x2=50+((int(item[1])/maxlen) * 550),
+                    y2=315-item[2]
+                )
+            )
+            rightfeatureelements.append(
+                svg.Text(
+                    text=item[0],
+                    x=50 + ((int(item[1]) / maxlen) * 550) + 6,
+                    y=330-item[2],
+                    font_family="monospace",
+                    font_size=20
+                )
+            )
+    else:
+        homolen = request.json.get("homolen")
+        homostructures = request.json.get("homostructures")
+        homofeatures = request.json.get("homofeatures")
+
+        base.append(svg.Line( # SECOND LINE
+            stroke_width=5,
+            stroke="grey",
+            x1=50,
+            y1=280,
+            x2=50+((int(homolen)/int(homolen)) * 550) + ((1/int(homolen)) * 550),
+            y2=280
+        ))
+        base.append(svg.Text( # 1|1 TEXT
+            text='1|1',
+            x=5,
+            y=285,
+            fill="black",
+            font_family="monospace",
+            stroke_width=1,
+            font_size=20
+        ))
+        base.append(svg.Text( # TOP AA LENGTH
+            text=f'{homolen} AA',
+            x=50+((int(homolen)/int(homolen)) * 550) + ((1/int(homolen)) * 550) + 10,
+            y=285,
+            fill="black",
+            font_family="monospace",
+            stroke_width=1,
+            font_size=20
+        ))
+        for item in homostructures:
+            if len(item) != 4: continue
+            fontsize = 20
+            if (len(item[0]) * fontsize * (3/5)) > (((int(item[2])-int(item[1]))/int(homolen))*550):
+                fontsize = (((((int(item[2])-int(item[1]))/int(homolen))*550) * 0.9) / (3/5)) / len(item[0])
+            homobar.append(
+                svg.Rect(
+                    fill=item[3],
+                    x=50+((int(item[1])/int(homolen))*550),
+                    y=265,
+                    width=(((int(item[2])-int(item[1]))/int(homolen))*550),
+                    height=30,
+                )
+            )
+            fontcol = "black"
+            if item[0] == "DEGEN": fontcol="red"
+            homobar.append(
+                svg.Text(
+                    text=item[0],
+                    x=50+((((int(item[1])+int(item[2]))/2)/int(homolen))*550)-(fontsize*(3/5)*len(item[0])/2),
+                    y=285,
+                    fill=fontcol,
+                    font_family="monospace",
+                    font_size=fontsize
+                )
+            )
+            homofeaturestemp = sorted([x for x in homofeatures if x], key=customsortfeatures)
+            homofeatureswithoverlap = []
+            for i in range(len(homofeaturestemp)):
+                itemlen = (len(homofeaturestemp[i][0])/int(homolen))*(int(homolen)/5) * ((100/int(homolen))*600)
+                height = 0
+                if i != 0:
+                    if ((int(homofeaturestemp[i][1])/int(homolen))*600)+int(itemlen) >= ((int(homofeaturestemp[i-1][1])/int(homolen))*600):
+                        height = int(homofeatureswithoverlap[i-1][2])+30
+                homofeatureswithoverlap.append(homofeaturestemp[i]+[height])
+                print(homofeatureswithoverlap)
+            for item in homofeatureswithoverlap:
+                homofeatureelements.append(
+                    svg.Line(
+                        stroke_width=3,
+                        stroke="red",
+                        x1=50+((int(item[1])/int(homolen)) * 550),
+                        y1=265,
+                        x2=50+((int(item[1])/int(homolen)) * 550),
+                        y2=235-item[2]
+                    )
+                )
+                homofeatureelements.append(
+                    svg.Text(
+                        text=item[0],
+                        x=50 + ((int(item[1]) / int(homolen)) * 550) + 6,
+                        y=250-item[2],
+                        font_family="monospace",
+                        font_size=20
+                    )
+                )
+
+        # print(homolen)
+        # print(homostructures)
+        # print(homofeatures)
+
+    canvas = svg.SVG(
+        width=720,
+        height=480,
+        elements = base + topbar + bottombar + homobar + leftfeatureelements + rightfeatureelements + homofeatureelements
+    )
+
+    svg_string = str(canvas)
+
+    with open('/home/threadripper/shared_storage/webapp/polarPipeline/static/variantFig.svg', 'w') as opened:
+        opened.write(svg_string)
+    
+    response_data = {
+        "message": "Data received successfully"
+    }
+
+    return jsonify(response_data)
+
+@app.route('/downloadfigure')
+def downloadfigure():
+    try:
+        # Build the path to the image file in the static folder
+        image_path = f'static/variantFig.svg'
+
+        # Use Flask's send_file function to send the image as a download
+        return send_file(image_path, as_attachment=True)
+
+    except FileNotFoundError:
+        # Handle the case where the image file is not found
+        return "Image not found", 404
 
 @app.route('/add_computer', methods=['POST'])
 def add_computer():

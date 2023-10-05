@@ -27,18 +27,6 @@
             margin-bottom: 2rem;
         }
         
-        .table-container {
-            margin-top: 1.5rem;
-        }
-        
-        .table {
-            width: 100%;
-        }
-        
-        .table tbody tr:nth-child(odd) {
-            background-color: #f2f2f2;
-        }
-        
         .btn {
             border-radius: 10px;
         }
@@ -81,6 +69,9 @@
                     <a class="nav-link" href="{{ url_for('id') }}">ID Generator</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('figuregenerator') }}">Protein Figures</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('configuration') }}">Configuration</a>
                 </li>
                 <li class="nav-item">
@@ -111,6 +102,27 @@
                             {% endfor %}
                         </div>
                     </div>
+                    <div class="card" style="margin-bottom: 1rem; border-radius: 10px;">
+                        <div class="card-header">
+                            Queued Jobs
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped">
+                                <tbody>
+                                    {% for row in rows[::-1] %}
+                                        {% if row[1] == 'waiting' %}
+                                            <tr>
+                                                <td class="table-item">
+                                                    {{ row[0] }}
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                                
+                            </table>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-lg-8">
                     <div class="card" style="border-radius: 10px;">
@@ -118,7 +130,7 @@
                             Overview
                         </div>
                         <div class="card-body">
-                            <table class="table">
+                            <table class="table table-striped">
                                 <thead>
                                     <tr>
                                         <th class="col-7">Run Name</th>
@@ -128,16 +140,18 @@
                                 </thead>
                                 <tbody>
                                     {% for row in rows[::-1] %}
-                                    <tr>
-                                        <td class="col-7 table-item">
-                                            <span class="truncate">{{ row [0] }}</span>
-                                        </td>
-                                        <td class="col-3"><span id="status">{{ row[1] }}</span></td>
-                                        <td class="col-2">
-                                            <a class="btn btn-primary info-button" href="{{ url_for('info', id=row[2]) }}">Info</a>
-                                            <button class="btn btn-danger delete-button" data-toggle="modal" data-target="#deleteRunModal" data-id="{{ row[2] }}">Delete</button>
-                                        </td>
-                                    </tr>
+                                        {% if row[1] != 'waiting' %}
+                                            <tr>
+                                                <td class="col-7 table-item">
+                                                    <span class="truncate">{{ row [0] }}</span>
+                                                </td>
+                                                <td class="col-3"><span id="status">{{ row[1] }}</span></td>
+                                                <td class="col-2">
+                                                    <a class="btn btn-primary info-button" href="{{ url_for('info', id=row[2]) }}">Info</a>
+                                                    <button class="btn btn-danger delete-button" data-toggle="modal" data-target="#deleteRunModal" onclick="handleDeleteClick('{{ row[2] }}')">Delete</button>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
                                     {% endfor %}
                                 </tbody>
                             </table>
@@ -160,11 +174,11 @@
                 </div>
                 <div class="modal-body">
                     <p>Are you sure?</p>
-                    <input type="hidden" id="itemIdInput">
+                    <input type="hidden" id="deleteItemModal" value="placeholder">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-danger confirm-button">Confirm</button>
+                    <button type="button" class="btn btn-danger confirm-button" onclick="deleteItem()">Confirm</button>
                 </div>
                 </form>
             </div>
@@ -243,6 +257,21 @@
 
             
         });
+
+        function handleDeleteClick(rowId) {
+            const modalVal = document.getElementById("deleteItemModal");
+            modalVal.value = rowId;
+        }
+
+        function deleteItem() {
+            const modalVal = document.getElementById("deleteItemModal").value;
+            window.location.href = "/deleteRun/" + modalVal
+        }
+
+
+
+</script>
+
     </script>
 </body>
 </html>

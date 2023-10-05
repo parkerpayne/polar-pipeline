@@ -294,7 +294,7 @@ def nextflow(input_file, output_directory, reference_file, clair3_model_path, th
         -profile standard \
         --snp \
         --sv \
-	--str \
+	    --str \
         --cnv \
         --bam {input_file} \
         --ref {reference_file} \
@@ -349,11 +349,11 @@ def y_nextflow(input_file, output_directory, reference_file, clair3_model_path, 
         --depth_intervals \
         --phase_vcf \
         --phase_sv \
-        --threads 90 \
-        --ubam_map_threads 30 \
-        --ubam_sort_threads 30 \
-        --ubam_bam2fq_threads 30 \
-        --merge_threads 90 \
+        --threads {threads} \
+        --ubam_map_threads {math.floor(int(threads)/3)} \
+        --ubam_sort_threads {math.floor(int(threads)/3)} \
+        --ubam_bam2fq_threads {math.floor(int(threads)/3)} \
+        --merge_threads {threads} \
         --disable_ping"
     try:
         os.system(command)
@@ -415,7 +415,7 @@ def vep(input_snv, input_sv, reference_path, threads='30', output_snv='output', 
 #   return: none. does more damage the more the user likes you.
 
     pc_name = whoami()
-    run_name = input_snv.strip().split('/')[-1].split('.')[0]
+    run_name = input_snv.strip().split('/')[-1].split('.vcf')[0]
     if input_snv.endswith('.gz'):
         subprocess.run(["pigz", "-d", run_name+".wf_snp.vcf.gz"], cwd='/'.join(input_snv.strip().split('/')[:-1]))
         input_snv = input_snv.split('.gz')[0]
@@ -464,7 +464,8 @@ def vep(input_snv, input_sv, reference_path, threads='30', output_snv='output', 
         f' --plugin dbNSFP,/home/{pc_name}/vep-resources/dbNSFP4.4a_grch38.gz,ALL',
         f' --plugin REVEL,/home/{pc_name}/vep-resources/new_tabbed_revel_grch38.tsv.gz',
         f' --plugin AlphaMissense,file=/home/{pc_name}/vep-resources/AlphaMissense_hg38.tsv.gz',
-        f' --plugin EVE,file=/home/{pc_name}/vep-resources/eve_merged.vcf.gz'
+        f' --plugin EVE,file=/home/{pc_name}/vep-resources/eve_merged.vcf.gz',
+        f' --plugin DisGeNET,file=/home/{pc_name}/vep-resources/all_variant_disease_pmid_associations_final.tsv.gz'
     ]
     
     input_dir = '/'.join(input_snv.strip().split('/')[:-1])
@@ -585,6 +586,8 @@ def addToolsColumn(bed_file):
         tools.append('PA,' if 'D' in tabbed_line[columns['PrimateAI_pred']] else '')
         tools.append('S4,' if 'D' in tabbed_line[columns['SIFT4G_pred']] else '')
         tools.append('RV,' if tabbed_line[columns['REVEL']] != '-' and float(tabbed_line[columns['REVEL']]) > 0.75  else '')
+        tools.append('AM,' if 'likely_pathogenic' in tabbed_line[columns['am_class']] else '')
+        tools.append('EV,' if 'Pathogenic' in tabbed_line[columns['EVE_CLASS']] else '')
         num_tools = int(len(''.join(tools).replace(',',''))/2)
 
         if 'Snif' not in id:
