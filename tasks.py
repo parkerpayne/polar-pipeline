@@ -402,13 +402,16 @@ def process(input_file_path, clair_model_name, gene_source_name, bed_file_name, 
     subprocess.run(["rm", "-r", "workspace"], cwd=f"{working_path}")
     subprocess.run(["mv", 'output', nextflowdir], cwd=working_path)
 
+    subprocess.run(['pigz', '-d', run_name+'.regions.bed.gz'], cwd=os.path.join(nextflowdir, 'output'))
+
     createRunSummary(
         nextflowdir, 
         os.path.join(nextflowdir, 'output', 'wf-human-variation-alignment-report.html'), 
         os.path.join(nextflowdir, 'output', f'{run_name}.wf-human-cnv-report.html'),
         os.path.join(nextflowdir, 'output', f'{run_name}.wf-human-snp-report.html'),
         os.path.join(nextflowdir, 'output', f'{run_name}.wf-human-sv-report.html'),
-        os.path.join(nextflowdir, 'output', 'execution', 'report.html'))
+        os.path.join(nextflowdir, 'output', 'execution', 'report.html'),
+        os.path.join(nextflowdir, 'output', f'{run_name}.regions.bed'))
 
     subprocess.run(["rm", "-r", id], cwd='/'.join(working_path.strip().split('/')[:-1]))
 
@@ -621,5 +624,17 @@ def processT2T(input_file_path, clair_model_name, bed_file_name, reference_file_
     subprocess.run(["mv", 'output', nextflowdir], cwd=working_path)
 
     subprocess.run(["rm", "-r", id], cwd='/'.join(working_path.strip().split('/')[:-1]))
+
+    subprocess.run(['pigz', '-d', run_name+'.regions.bed.gz'], cwd=os.path.join(nextflowdir, 'output'))
+
+    createRunSummary(
+        nextflowdir, 
+        os.path.join(nextflowdir, 'output', 'wf-human-variation-alignment-report.html'), 
+        'none',
+        'none',
+        os.path.join(nextflowdir, 'output', f'{run_name}.wf-human-sv-report.html'),
+        os.path.join(nextflowdir, 'output', 'execution', 'report.html'),
+        os.path.join(nextflowdir, 'output', f'{run_name}.regions.bed')
+        )
 
     update_db(id, 'status', 'complete')

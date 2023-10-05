@@ -285,13 +285,183 @@
         </div>
     </div>
 
+    <span class="btn btn-primary" onclick="saveInfo()">test</span>
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
 
-        function test() {
-            console.log("success");
+        function saveInfo() {
+
+            const protnamefield = document.getElementById("protname");
+            const proteinname = protnamefield.value;
+
+            const abprotnamefield = document.getElementById("abprotname");
+            const abproteinname = abprotnamefield.value;
+
+            const homoradio = document.getElementById('zygosity2');
+            homo = homoradio.checked;
+            console.log(homo);
+            if (!homo){
+                const leftstrucs = document.getElementById("leftstrucs");
+                const leftitems = leftstrucs.children;
+                const leftstructures = []
+                for (let i = 0; i < leftitems.length; i++) {
+                    const leftitem = leftitems[i];
+                    const textFields = leftitems[i].querySelectorAll('.form-control');
+                    const strucvals = []
+                    for (let j = 0; j < textFields.length; j++) {
+                        strucvals.push(textFields[j].value);
+                    }
+                    leftstructures.push(strucvals);
+                }
+                
+                const leftlenfield = document.getElementById("protlenleft");
+                const leftlen = leftlenfield.value;
+
+                let rightlen;
+                let rightstructures;
+                const same = document.getElementById("sameradio1").checked;
+                if (same){
+                    rightlen = leftlen;
+                    rightstructures = leftstructures;
+                }else{
+                    const rightstrucs = document.getElementById("rightstrucs");
+                    const rightitems = rightstrucs.children;
+                    rightstructures = []
+                    for (let i = 0; i < rightitems.length; i++) {
+                        const rightitem = rightitems[i];
+                        const textFields = rightitems[i].querySelectorAll('.form-control');
+                        const strucvals = []
+                        for (let j = 0; j < textFields.length; j++) {
+                            strucvals.push(textFields[j].value);
+                        }
+                        rightstructures.push(strucvals);
+                    }
+                    const rightlenfield = document.getElementById("protlenright");
+                    rightlen = rightlenfield.value;
+                }
+
+
+                const leftfeaturecontainer = document.getElementById("featurecontainerleft");
+                const leftfeatureitems = leftfeaturecontainer.children;
+                const leftfeatures = []
+                for (let i = 0; i < leftfeatureitems.length; i++) {
+                    const leftfeatureitem = leftfeatureitems[i];
+                    const textFields = leftfeatureitems[i].querySelectorAll('.form-control');
+                    const featurevals = []
+                    for (let j = 0; j < textFields.length; j++) {
+                        featurevals.push(textFields[j].value);
+                    }
+                    leftfeatures.push(featurevals);
+                }
+                const rightfeaturecontainer = document.getElementById("featurecontainerright");
+                const rightfeatureitems = rightfeaturecontainer.children;
+                const rightfeatures = []
+                for (let i = 0; i < rightfeatureitems.length; i++) {
+                    const rightfeatureitem = rightfeatureitems[i];
+                    const textFields = rightfeatureitems[i].querySelectorAll('.form-control');
+                    const featurevals = []
+                    for (let j = 0; j < textFields.length; j++) {
+                        featurevals.push(textFields[j].value);
+                    }
+                    rightfeatures.push(featurevals);
+                }
+
+                console.log(homo)
+                console.log(abproteinname);
+                console.log(proteinname);
+                console.log(leftlen);
+                console.log(leftstructures);
+                console.log(rightlen);
+                console.log(rightstructures);
+                console.log(leftfeatures);
+                console.log(rightfeatures);
+
+                // $.ajax({
+                //     type: 'POST',
+                //     url: '/saveState',
+                //     data: JSON.stringify({
+                //         homo: homo,
+                //         abproteinname: abproteinname,
+                //         proteinname: proteinname,
+                //         leftlen: leftlen,
+                //         leftstructures: leftstructures,
+                //         rightlen: rightlen,
+                //         rightstructures: rightstructures,
+                //         leftfeatures: leftfeatures,
+                //         rightfeatures: rightfeatures
+                //     }),
+                //     contentType: 'application/json',
+                //     success: function (response) {
+                //         document.getElementById("resultcontainer").innerHTML += "";
+                //     },
+                //     error: function () {
+                //         alert("Error. Are all fields correct?");
+                //     }
+                // });
+                
+            }else{
+                let homolen;
+                let homostructures;
+                const homostrucs = document.getElementById("homostrucs");
+                const homoitems = homostrucs.children;
+                homostructures = []
+                for (let i = 0; i < homoitems.length; i++) {
+                    const homoitem = homoitems[i];
+                    const textFields = homoitems[i].querySelectorAll('.form-control');
+                    const strucvals = []
+                    for (let j = 0; j < textFields.length; j++) {
+                        strucvals.push(textFields[j].value);
+                    }
+                    homostructures.push(strucvals);
+                }
+                const homolenfield = document.getElementById("protlenhomo");
+                homolen = homolenfield.value;
+
+                const homofeaturecontainer = document.getElementById("featurecontainerhomo");
+                const homofeatureitems = homofeaturecontainer.children;
+                const homofeatures = []
+                for (let i = 0; i < homofeatureitems.length; i++) {
+                    const homofeatureitem = homofeatureitems[i];
+                    const textFields = homofeatureitems[i].querySelectorAll('.form-control');
+                    const featurevals = []
+                    for (let j = 0; j < textFields.length; j++) {
+                        featurevals.push(textFields[j].value);
+                    }
+                    homofeatures.push(featurevals);
+                }
+
+                console.log(homo);
+                console.log(abproteinname);
+                console.log(proteinname);
+                console.log(homolen);
+                console.log(homostructures);
+                console.log(homofeatures);
+               
+                $.ajax({
+                    type: 'POST',
+                    url: '/generatefigure',
+                    data: JSON.stringify({
+                        homo: homo,
+                        abproteinname: abproteinname,
+                        proteinname: proteinname,
+                        homolen: homolen,
+                        homostructures: homostructures,
+                        homolen: homolen,
+                        homofeatures: homofeatures,
+                    }),
+                    contentType: 'application/json',
+                    success: function (response) {
+                        document.getElementById("resultcontainer").innerHTML += "";
+                    },
+                    error: function () {
+                        alert("Error. Are all fields correct?");
+                    }
+                });
+            }
+
         }
 
         let right = 0;

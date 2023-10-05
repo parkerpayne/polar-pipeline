@@ -4,6 +4,7 @@ import re
 import os
 import math
 import psycopg2
+import statistics
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from bs4 import BeautifulSoup
@@ -1276,24 +1277,51 @@ def reportReport(file_path):
 
     return reportData
 
-def createRunSummary(output, alignment, cnv, snp, sv, report):
+def coverageReport(file_path):
+    coverageArray = []
+    for line in open(file_path):
+        coverageArray.append(float(line.strip().split('\t')[3]))
+    median = statistics.median(coverageArray)
+    mean = statistics.mean(coverageArray)
+    coverageData = {'Median coverage': str(median), 'Mean coverage': str(mean)}
+    return coverageData
+
+def createRunSummary(output, alignment, cnv, snp, sv, report, coverage):
     with open(os.path.join(output, 'run_summary.txt'), 'w') as opened:
-        qcData = qcReport(alignment)
-        cnvData = cnvReport(cnv)
-        snpData = snpReport(snp)
-        svData = svReport(sv)
-        reportData = reportReport(report)
-        opened.write('Name'+'\t'+output.split('/')[-2]+'\n')
-        for item in qcData:
-            opened.write(item+'\t'+qcData[item]+'\n')
-        for item in cnvData:
-            opened.write(item+'\t'+cnvData[item]+'\n')
-        for item in snpData:
-            opened.write(item+'\t'+snpData[item]+'\n')
-        for item in svData:
-            opened.write(item+'\t'+svData[item]+'\n')
-        for item in reportData:
-            opened.write(item+'\t'+reportData[item]+'\n')
+        if snp != 'none':
+            qcData = qcReport(alignment)
+            cnvData = cnvReport(cnv)
+            snpData = snpReport(snp)
+            svData = svReport(sv)
+            reportData = reportReport(report)
+            coverageData = coverageReport(coverage)
+            opened.write('Name'+'\t'+output.split('/')[-2]+'\n')
+            for item in qcData:
+                opened.write(item+'\t'+qcData[item]+'\n')
+            for item in cnvData:
+                opened.write(item+'\t'+cnvData[item]+'\n')
+            for item in snpData:
+                opened.write(item+'\t'+snpData[item]+'\n')
+            for item in svData:
+                opened.write(item+'\t'+svData[item]+'\n')
+            for item in reportData:
+                opened.write(item+'\t'+reportData[item]+'\n')
+            for item in coverageData:
+                opened.write(item+'\t'+coverageData[item]+'\n')
+        else:
+            qcData = qcReport(alignment)
+            svData = svReport(sv)
+            reportData = reportReport(report)
+            coverageData = coverageReport(coverage)
+            opened.write('Name'+'\t'+output.split('/')[-2]+'\n')
+            for item in qcData:
+                opened.write(item+'\t'+qcData[item]+'\n')
+            for item in svData:
+                opened.write(item+'\t'+svData[item]+'\n')
+            for item in reportData:
+                opened.write(item+'\t'+reportData[item]+'\n')
+            for item in coverageData:
+                opened.write(item+'\t'+coverageData[item]+'\n')
 
 def vcftobed(inputpath):
 
