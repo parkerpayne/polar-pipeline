@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Polar Pipeline</title>
+    <title>Figure Generator - Polar Pipeline</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <style>
@@ -107,7 +107,14 @@
             <div class="row">
                 <div class="col-lg-12">
                     <h3 style="margin-bottom: 2rem;">Figure Generator</h3>
-                    <h4>Options</h4>
+                    <div class="row" style="padding-left: 1rem; padding-right:1rem; display: flex; justify-content: space-between; align-items: end;">
+                        <h4>Options</h4>
+                        <button type="button" class="btn btn-primary" style="margin-bottom: 5px;" data-toggle="modal" data-target="#loadStateModal" onclick="loadStates()">
+                            Load Preset <span class="oi oi-plus" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                    
+                    
                     <div class="round-container">
                         <h4>Protein Info</h4>
                         <form id="protein-form">
@@ -205,10 +212,11 @@
                                 </div>
                                 <div class="row" style="margin-top: 2rem;">
                                     <div class="col-12">
-                                        <h4>Features</h4>
+                                        <h4 style="margin-bottom: 0;">Features</h4>
+                                        (To raise feature height in event of overlap, add one '^' to the name per level)
                                     </div> 
                                 </div>
-                                <div class="row">
+                                <div class="row" style="margin-top: 1rem;">
                                     <div class="col-6">
                                         <div id="featurecontainerleft">
                                             
@@ -222,6 +230,9 @@
                                 </div>
                                 <div class="row g-3" style="padding: 1rem;">
                                     <span class="btn btn-primary" onclick="generateFigure()">Generate</span>
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" style="margin-left: 0.5rem;" data-target="#saveStateModal">
+                                        Save Preset <span class="oi oi-plus" aria-hidden="true"></span>
+                                    </button>
                                 </div>
                             </div>
                             <div class="hidden" id="homocontainer">
@@ -260,6 +271,9 @@
                                 </div>
                                 <div class="row g-3" style="padding: 1rem;">
                                     <span class="btn btn-primary" onclick="generateFigure()">Generate</span>
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" style="margin-left: 0.5rem;" data-target="#saveStateModal">
+                                        Save Preset <span class="oi oi-plus" aria-hidden="true"></span>
+                                    </button>
                                 </div>
                             </div>
                         </form>
@@ -285,7 +299,53 @@
         </div>
     </div>
 
-    <span class="btn btn-primary" onclick="saveInfo()">test</span>
+    
+
+    <div class="modal fade" id="saveStateModal" tabindex="-1" role="dialog" aria-labelledby="saveStateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="saveStateModalLabel">Save As Preset</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="presetname">Preset Name:</label>
+                        <input type="text" class="form-control" id="presetname" name="presetname" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span class="btn btn-secondary" data-dismiss="modal">Close</span>
+                    <span class="btn btn-primary" data-dismiss="modal" onclick="saveInfo()">Save Preset</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="loadStateModal" tabindex="-1" role="dialog" aria-labelledby="loadStateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loadStateModalLabel">Load Preset</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <select class="form-select" style="width:100%;" id="selectPreset" aria-label="Default select example">
+                        <option selected>- Select -</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <span class="btn btn-secondary" data-dismiss="modal">Close</span>
+                    <span class="btn btn-primary" data-dismiss="modal" onclick="loadInfo()">Load Preset</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
@@ -293,6 +353,8 @@
     <script>
 
         function saveInfo() {
+
+            const presetname = document.getElementById("presetname").value;
 
             const protnamefield = document.getElementById("protname");
             const proteinname = protnamefield.value;
@@ -379,28 +441,29 @@
                 console.log(leftfeatures);
                 console.log(rightfeatures);
 
-                // $.ajax({
-                //     type: 'POST',
-                //     url: '/saveState',
-                //     data: JSON.stringify({
-                //         homo: homo,
-                //         abproteinname: abproteinname,
-                //         proteinname: proteinname,
-                //         leftlen: leftlen,
-                //         leftstructures: leftstructures,
-                //         rightlen: rightlen,
-                //         rightstructures: rightstructures,
-                //         leftfeatures: leftfeatures,
-                //         rightfeatures: rightfeatures
-                //     }),
-                //     contentType: 'application/json',
-                //     success: function (response) {
-                //         document.getElementById("resultcontainer").innerHTML += "";
-                //     },
-                //     error: function () {
-                //         alert("Error. Are all fields correct?");
-                //     }
-                // });
+                $.ajax({
+                    type: 'POST',
+                    url: '/saveState',
+                    data: JSON.stringify({
+                        presetname: presetname,
+                        homo: homo,
+                        abproteinname: abproteinname,
+                        proteinname: proteinname,
+                        leftlen: leftlen,
+                        leftstructures: leftstructures,
+                        rightlen: rightlen,
+                        rightstructures: rightstructures,
+                        leftfeatures: leftfeatures,
+                        rightfeatures: rightfeatures
+                    }),
+                    contentType: 'application/json',
+                    success: function (response) {
+                        document.getElementById("resultcontainer").innerHTML += "";
+                    },
+                    error: function () {
+                        alert("Error. Are all fields correct?");
+                    }
+                });
                 
             }else{
                 let homolen;
@@ -442,8 +505,9 @@
                
                 $.ajax({
                     type: 'POST',
-                    url: '/generatefigure',
+                    url: '/saveState',
                     data: JSON.stringify({
+                        presetname: presetname,
                         homo: homo,
                         abproteinname: abproteinname,
                         proteinname: proteinname,
@@ -463,6 +527,167 @@
             }
 
         }
+
+        function loadStates(){
+            $.ajax({
+                type: 'POST',
+                url: '/loadStates',
+                data: JSON.stringify({
+                    empty: 'empty'
+                }),
+                contentType: 'application/json',
+                success: function(response){
+                    const dropdown_ = document.getElementById('selectPreset');
+                    while (dropdown_.firstChild) {
+                        dropdown_.removeChild(dropdown_.firstChild);
+                    }
+                    response.data.forEach((preset) => {
+                        const newPresetOption = document.createElement("option");
+                        newPresetOption.className = "struc-container";
+                        newPresetOption.value = preset;
+                        newPresetOption.innerText = preset;
+                        dropdown_.appendChild(newPresetOption);
+                    });
+                },
+                error: function() {
+                    alert("Error. Could not load presets.");
+                }
+            })
+        }
+
+        function deepEqual(arr1, arr2) {
+            if (arr1.length !== arr2.length) {
+                return false;
+            }
+
+            for (let i = 0; i < arr1.length; i++) {
+                if (Array.isArray(arr1[i]) && Array.isArray(arr2[i])) {
+                    if (!deepEqual(arr1[i], arr2[i])) {
+                        return false;
+                    }
+                } else if (arr1[i] !== arr2[i]) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function loadInfo(){
+            const dropdown_ = document.getElementById('selectPreset');
+            preset = dropdown_.value;
+            $.ajax({
+                type: 'POST',
+                url: '/loadState',
+                data: JSON.stringify({
+                    preset: preset
+                }),
+                contentType: 'application/json',
+                success: function(response){
+                    const abproteinname = document.getElementById("abprotname");
+                    abproteinname.value = response.data.abproteinname;
+                    const protname = document.getElementById("protname");
+                    protname.value = response.data.proteinname;
+                    if (response.data.homo) {
+                        document.getElementById("zygosity2").checked = true;
+                        homochecked(true);
+                        document.getElementById("protlenhomo").value = response.data.homolen;
+                        const homostrucs = document.getElementById("homostrucs");
+                        while (homostrucs.firstChild) {
+                            homostrucs.removeChild(homostrucs.firstChild);
+                        }
+                        response.data.homostructures.forEach((struc) => {
+                            if(!deepEqual([], struc))
+                            loadNewStrucContainer('homo', struc[0], struc[1], struc[2], struc[3]);
+                        });
+                        const homofeats = document.getElementById("featurecontainerhomo");
+                        while (homofeats.firstChild) {
+                            homofeats.removeChild(homofeats.firstChild);
+                        }
+                        response.data.homofeatures.forEach((feat) => {
+                            if(!deepEqual([], feat))
+                            loadNewFeatureContainer('homo', feat[0], feat[1]);
+                        });
+                    }else{
+                        if (deepEqual(response.data.leftstructures, response.data.rightstructures)){
+                            console.log('same protein structure');
+                            document.getElementById("zygosity1").checked = true;
+                            homochecked(false);
+                            document.getElementById("sameradio1").checked = true;
+                            document.getElementById("protlenleft").value = response.data.leftlen;
+                            const leftstrucs = document.getElementById("leftstrucs");
+                            while (leftstrucs.firstChild) {
+                                leftstrucs.removeChild(leftstrucs.firstChild);
+                            }
+                            response.data.leftstructures.forEach((struc) => {
+                                if(!deepEqual([], struc))
+                                loadNewStrucContainer('left', struc[0], struc[1], struc[2], struc[3]);
+                            });
+                            const leftfeats = document.getElementById("featurecontainerleft");
+                            while (leftfeats.firstChild) {
+                                leftfeats.removeChild(leftfeats.firstChild);
+                            }
+                            response.data.leftfeatures.forEach((feat) => {
+                                if(!deepEqual([], feat))
+                                loadNewFeatureContainer('left', feat[0], feat[1]);
+                            });
+                            const rightfeats = document.getElementById("featurecontainerright");
+                            while (rightfeats.firstChild) {
+                                rightfeats.removeChild(rightfeats.firstChild);
+                            }
+                            response.data.rightfeatures.forEach((feat) => {
+                                if(!deepEqual([], feat))
+                                loadNewFeatureContainer('right', feat[0], feat[1]);
+                            });
+                            updateMirror();
+                        }else{
+                            console.log('different protein structure');
+                            document.getElementById("zygosity1").checked = true;
+                            homochecked(false);
+                            document.getElementById("sameradio2").checked = true;
+                            updateMirror();
+                            document.getElementById("protlenleft").value = response.data.leftlen;
+                            const leftstrucs = document.getElementById("leftstrucs");
+                            while (leftstrucs.firstChild) {
+                                leftstrucs.removeChild(leftstrucs.firstChild);
+                            }
+                            response.data.leftstructures.forEach((struc) => {
+                                if(!deepEqual([], struc))
+                                loadNewStrucContainer('left', struc[0], struc[1], struc[2], struc[3]);
+                            });
+                            const rightstrucs = document.getElementById("rightstrucs");
+                            while (rightstrucs.firstChild) {
+                                rightstrucs.removeChild(rightstrucs.firstChild);
+                            }
+                            response.data.rightstructures.forEach((struc) => {
+                                if(!deepEqual([], struc))
+                                loadNewStrucContainer('right', struc[0], struc[1], struc[2], struc[3]);
+                            });
+                            const leftfeats = document.getElementById("featurecontainerleft");
+                            while (leftfeats.firstChild) {
+                                leftfeats.removeChild(leftfeats.firstChild);
+                            }
+                            response.data.leftfeatures.forEach((feat) => {
+                                if(!deepEqual([], feat))
+                                loadNewFeatureContainer('left', feat[0], feat[1]);
+                            });
+                            const rightfeats = document.getElementById("featurecontainerright");
+                            while (rightfeats.firstChild) {
+                                rightfeats.removeChild(rightfeats.firstChild);
+                            }
+                            response.data.rightfeatures.forEach((feat) => {
+                                if(!deepEqual([], feat))
+                                loadNewFeatureContainer('right', feat[0], feat[1]);
+                            });
+                        }
+                    }
+                },
+                error: function() {
+                    alert("Error. Could not load presets.");
+                }
+            })
+        }
+
 
         let right = 0;
         let left = 0;
@@ -504,6 +729,47 @@
         let featureleft = 0;
         let featurehomo = 0;
 
+        function loadNewFeatureContainer(side, name, position) {
+            const newFeatureContainer = document.createElement("div");
+
+            let num = 0;
+            if (side == 'left'){
+                num = featureleft;
+                featureleft++;
+            }else if (side=='right'){
+                num = featureright;
+                featureright++;
+            }else if(side=='homo'){
+                num = featurehomo;
+                featurehomo++;
+            }
+
+            newFeatureContainer.innerHTML = `
+            <div class="round-container" id="feature`+side+num+`">
+                <div class="row">
+                    <div class="col-4">
+                        <label for="featurename`+side+num+`" class="col-form-label">Feature Name</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="featurename`+side+num+`" class="form-control" value="`+name+`">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4">
+                        <label for="featurepos`+side+num+`" class="col-form-label">Feature Position</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="featurepos`+side+num+`" class="form-control" value="`+position+`">
+                    </div>
+                </div>
+            </div>
+            <span class="btn btn-light" id="deletefeature`+side+num+`" value="`+num+`" onclick="deleteFeature('`+side+`', this.getAttribute('value'))">Delete Feature</span>
+            `
+            const featureContainer = document.getElementById("featurecontainer"+side);
+            featureContainer.appendChild(newFeatureContainer);
+
+        }
+
         function addNewFeatureContainer(side) {
             const newFeatureContainer = document.createElement("div");
 
@@ -542,6 +808,73 @@
             `
             const featureContainer = document.getElementById("featurecontainer"+side);
             featureContainer.appendChild(newFeatureContainer);
+
+        }
+        
+
+        function loadNewStrucContainer(side, name, start, stop, color) {
+
+            // Create a new struc-container element
+            const newStrucContainer = document.createElement("div");
+            newStrucContainer.className = "struc-container";
+
+            let num = 0;
+            if (side=='left'){
+                num = left;
+                left++;
+            } else if (side=='right'){
+                num = right;
+                right++;
+            } else if (side == 'homo'){
+                num = homo;
+                homo++;
+            }
+
+            newcolor=color;
+
+            // Fill the new container with content (similar to the existing struc-container)
+            newStrucContainer.innerHTML = `
+                <div class="round-container color-container" style="background-color: `+newcolor+`" id="struc`+side+num+`">
+                    <div class="row">
+                        <div class="col-4">
+                            <label for="protname`+side+num+`" class="col-form-label">Structure Name</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="protname`+side+num+`" class="form-control" value="`+name+`">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+                            <label for="protstart`+side+num+`" class="col-form-label">Structure Start</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="protstart`+side+num+`" class="form-control" value="`+start+`">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+                            <label for="protstop`+side+num+`" class="col-form-label">Structure Stop</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="protstop`+side+num+`" class="form-control" value="`+stop+`">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+                            <label class="form-label">Color</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="color" class="form-control form-control-color" value="`+newcolor+`" id="color`+side+num+`" title="Choose your color" onchange="changeBackgroundColor(this.getAttribute('id'))">
+                        </div>
+                    </div>
+                </div>
+                <span class="btn btn-light" id="delete`+side+num+`" value="`+num+`" onclick="deleteStruc('`+side+`', this.getAttribute('value')); updateMirror()">Delete Structure</span>
+                `;
+
+            // Append the new struc-container to the container
+            const strucContainer = document.getElementById(side+"strucs");
+            strucContainer.appendChild(newStrucContainer);
+
 
         }
 

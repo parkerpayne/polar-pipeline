@@ -23,7 +23,7 @@
         }
         .round-container {
             padding: 1rem;
-            background-color: #f9f9f9;
+            background-color: #ffffff;
             border: 1px solid #ddd;
             margin-bottom: 1rem;
             border-radius: 10px;
@@ -36,9 +36,6 @@
             width: 100%;
         }
         
-        .table tbody tr:nth-child(odd) {
-            background-color: #f2f2f2;
-        }
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -140,104 +137,118 @@
                         </li>
                         {% endfor %}
                     </ul>
-                    <!-- <div class="round-container" style="margin-top: 2rem;">
-                        <table class="table">
-                            <thead>
-                                <td><h3 class="configurations-heading">Clair Models</h3></td>
-                                <td>
-                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="">
-                                        + <span class="oi oi-plus" aria-hidden="true"></span>
-                                    </button>
-                                </td>
-                            </thead>
+                    <div class="config-actions">
+                        <h3 class="configurations-heading" style="margin-top: 2rem;">Clair Models</h3>
+                    </div>
+                    <div class="round-container">
+                        <table class="table table-striped">
                             <tbody>
                                 {% for model in clair_models %}
                                 <tr>
-                                    <td class="col-10 truncate">{{ model }}</td>
-                                    <td class="col-2">
-                                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="">
-                                            X <span class="oi oi-plus" aria-hidden="true"></span>
+                                    <td class="col-11 truncate">{{ model }}</td>
+                                    <td class="col-1">
+                                        <button type="button" value="clair_models/{{ model }}" class="btn btn-danger" data-toggle="modal" data-target="" onclick="removeItem(value)">
+                                            x
                                         </button>
                                     </td>
                                 </tr>
                                 {% endfor %}
+                                <tr>
+                                    <td class="col-11 truncate"></td>
+                                    <td class="col-1">
+                                        <form id="uploadForm1" enctype="multipart/form-data" method="post" action="/upload/clair_models">
+                                            <input type="file" id="fileInput1" name="file" style="display: none;">
+                                            <button type="button" class="btn btn-primary" onclick="chooseFile('fileInput1')">+</button>
+                                        </form>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div class="round-container" style="margin-top: 2rem;">
-                        <table class="table">
-                            <thead>
-                                <td><h3 class="configurations-heading">Reference Files</h3></td>
-                                <td>
-                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="">
-                                        + <span class="oi oi-plus" aria-hidden="true"></span>
-                                    </button>
-                                </td>
-                            </thead>
+                    <div class="config-actions">
+                        <h3 class="configurations-heading" style="margin-top: 2rem;">Reference Files</h3>
+                    </div>
+                    <div class="round-container">
+                        <table class="table table-striped">
                             <tbody>
-                                {% for file in reference_files %}
+                                {% for ref in reference_files %}
                                 <tr>
-                                    {% if not file.endswith('.fai') %}
-                                    <td class="col-10 truncate">{{ file }}</td>
-                                    <td class="col-2">
-                                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="">
-                                            X <span class="oi oi-plus" aria-hidden="true"></span>
+                                    <td class="col-11 truncate">{{ ref }}</td>
+                                    <td class="col-1">
+                                        <button type="button" value="reference_files/{{ ref }}" class="btn btn-danger" data-toggle="modal" data-target="" onclick="removeItem(value)">
+                                            x <span class="oi oi-plus" aria-hidden="true"></span>
                                         </button>
                                     </td>
-                                    {% endif %}
                                 </tr>
                                 {% endfor %}
+                                <tr>
+                                    <td class="col-11 truncate"></td>
+                                    <td class="col-1">
+                                        <form id="uploadForm2" enctype="multipart/form-data" method="post" action="/upload/reference_files">
+                                            <input type="file" id="fileInput2" name="file" style="display: none;">
+                                            <button type="button" class="btn btn-primary" onclick="chooseFile('fileInput2')">+</button>
+                                        </form>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div class="round-container" style="margin-top: 2rem;">
-                        <table class="table">
-                            <thead>
-                                <td><h3 class="configurations-heading">Gene Source Files</h3></td>
-                                <td>
-                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="">
-                                        + <span class="oi oi-plus" aria-hidden="true"></span>
-                                    </button>
-                                </td>
-                            </thead>
+                    <div class="config-actions">
+                        <h3 class="configurations-heading" style="margin-top: 2rem;">Gene Source Files</h3>
+                    </div>
+                    <div class="round-container">
+                        <table class="table table-striped">
                             <tbody>
-                                {% for file in gene_sources %}
+                                {% for gene_file in gene_sources %}
                                 <tr>
-                                    <td class="col-10 truncate">{{ file }}</td>
-                                    <td class="col-2">
-                                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="">
-                                            X <span class="oi oi-plus" aria-hidden="true"></span>
+                                    <td class="col-11 truncate">{{ gene_file }}</td>
+                                    <td class="col-1">
+                                        <button type="button" value="gene_source/{{ gene_file }}" class="btn btn-danger" data-toggle="modal" data-target="" onclick="removeItem(value)">
+                                            x <span class="oi oi-plus" aria-hidden="true"></span>
                                         </button>
                                     </td>
                                 </tr>
                                 {% endfor %}
+                                <tr>
+                                    <td class="col-11 truncate"></td>
+                                    <td class="col-1">
+                                        <form id="uploadForm3" enctype="multipart/form-data" method="post" action="/upload/gene_source">
+                                            <input type="file" id="fileInput3" name="file" style="display: none;">
+                                            <button type="button" class="btn btn-primary" onclick="chooseFile('fileInput3')">+</button>
+                                        </form>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div class="round-container" style="margin-top: 2rem;">
-                        <table class="table">
-                            <thead>
-                                <td><h3 class="configurations-heading">Bed Files</h3></td>
-                                <td>
-                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="">
-                                        + <span class="oi oi-plus" aria-hidden="true"></span>
-                                    </button>
-                                </td>
-                            </thead>
+                    <div class="config-actions">
+                        <h3 class="configurations-heading" style="margin-top: 2rem;">Bed Files</h3>
+                    </div>
+                    <div class="round-container">
+                        <table class="table table-striped">
                             <tbody>
-                                {% for file in bed_files %}
+                                {% for bed in bed_files %}
                                 <tr>
-                                    <td class="col-10 truncate">{{ file }}</td>
-                                    <td class="col-2">
-                                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="">
-                                            X <span class="oi oi-plus" aria-hidden="true"></span>
+                                    <td class="col-11 truncate">{{ bed }}</td>
+                                    <td class="col-1">
+                                        <button type="button" value="bed_files/{{ bed }}" class="btn btn-danger" data-toggle="modal" data-target="" onclick="removeItem(value)">
+                                            x <span class="oi oi-plus" aria-hidden="true"></span>
                                         </button>
                                     </td>
                                 </tr>
                                 {% endfor %}
+                                <tr>
+                                    <td class="col-11 truncate"></td>
+                                    <td class="col-1">
+                                        <form id="uploadForm4" enctype="multipart/form-data" method="post" action="/upload/bed_files">
+                                            <input type="file" id="fileInput4" name="file" style="display: none;">
+                                            <button type="button" class="btn btn-primary" onclick="chooseFile('fileInput4')">+</button>
+                                        </form>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
-                    </div> -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -367,6 +378,24 @@
                 localStorage.removeItem('openConfig'); // Clear the stored value after opening the dropdown
             }
         });
+
+        function chooseFile(inputId) {
+            const fileInput = document.getElementById(inputId);
+            fileInput.click();
+
+            fileInput.addEventListener("change", function () {
+                const form = fileInput.closest("form");
+                form.submit();
+            });
+        }
+
+        function removeItem(val){
+            const encodedVal = encodeURIComponent(val);
+            const redirectUrl = `/remove/${encodedVal}`;
+            console.log(redirectUrl);
+            window.location.href = redirectUrl;
+        }
+</script>
     </script>
     
     

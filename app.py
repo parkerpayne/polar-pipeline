@@ -11,6 +11,7 @@ import psycopg2
 import hashlib
 import time
 import svg
+import ast
 import os
 
 
@@ -29,6 +30,7 @@ db_config = {
 conn = psycopg2.connect(**db_config)
 
 CONFIG_FILE_PATH = '/home/threadripper/shared_storage/webapp/polarPipeline/assets/config.ini'
+FIGURE_PRESETS_CONFIG = '/home/threadripper/shared_storage/webapp/polarPipeline/assets/presets.ini'
 
 base_path = '/mnt'
 
@@ -164,42 +166,44 @@ def trigger_processing():
 #     return redirect(url_for('dashboard'))
 
 # uploading = False
-# @app.route('/upload', methods=['POST'])
-# def upload():
-#     print(request.files)
-#     if 'file' in request.files:
-#         uploaded_file = request.files['file']
-#         file_name = uploaded_file.filename
+@app.route('/upload/<string:filetype>', methods=['POST'])
+def upload(filetype):
+    print('request:',request.files)
+    print('filetype:',filetype)
+    uploaded_file = request.files['file']
+    file_name = uploaded_file.filename
 
-#         # Remove the file extension
-#         file_name_sans_extension = file_name.split('.')[0]
+    # Remove the file extension
+    file_name_sans_extension = file_name.strip().split('/')[-1].split('.')[0]
 
-#         # Get the current timestamp
-#         current_time = datetime.now()
+    print('filename:',file_name)
+    print('sans extension:',file_name_sans_extension)
 
-#         # Insert a new row into the progress table
-#         try:
-#             query = "INSERT INTO progress (file_name, status) VALUES (%s, %s)"
-#             with conn.cursor() as cursor:
-#                 cursor.execute(query, (file_name_sans_extension, 'waiting'))
-#             conn.commit()
-#         except Exception as e:
-#            print(f"Error updating the database: {e}")
-#            conn.rollback()
-#         cursor.close()
+    # Create a directory with the same name as the uploaded file
+    save_directory = os.path.join(f"/home/threadripper/shared_storage/shared_resources/", filetype)
 
-#         # Create a directory with the same name as the uploaded file
-#         save_directory = os.path.join("/home/threadripper/shared_storage/workspace/", file_name_sans_extension)
-#         os.makedirs(save_directory, exist_ok=True)
-#         # Save the uploaded file inside the created directory
-#         uploaded_file.save(os.path.join(save_directory, file_name))
+    # Save the uploaded file inside the created directory
+    uploaded_file.save(os.path.join(save_directory, file_name))
 
-#         process.delay(file_name)
+    if file_name.endswith('.gz'):
+        if 'tar' not in file_name:
+            subprocess.run(['pigz', '-d', os.path.join(save_directory, file_name)], cwd=save_directory)
+        else:
+            subprocess.run(['tar', '-xf', os.path.join(save_directory, file_name)], cwd=save_directory)
+            subprocess.run(['rm', os.path.join(save_directory, file_name)], cwd=save_directory)
 
-#         return redirect(url_for('dashboard'))
-#     else:
+    return redirect(url_for('configuration'))
 
-#         return redirect(url_for('index'))
+@app.route('/remove/<path:removepath>')
+def remove(removepath):
+    print(removepath)
+    base = '/home/threadripper/shared_storage/shared_resources'
+    full_path = os.path.join(base, removepath)
+    if os.path.isdir(full_path):
+        subprocess.run(['rm', '-r', full_path])
+    elif os.path.isfile(full_path):
+        subprocess.run(['rm', full_path])
+    return redirect(url_for('configuration'))
 
 @app.route('/dashboard')
 def dashboard():
@@ -315,6 +319,119 @@ def configuration():
 def figuregenerator():
     return render_template('figuregenerator.html')
 
+def save_preset(preset_name, preset_vals):
+    config = configparser.ConfigParser()
+    config.read(FIGURE_PRESETS_CONFIG)
+
+    if not config.has_section(preset_name):
+        config.add_section(preset_name)
+
+    for key, value in preset_vals.items():
+        value = str(value)  # Convert other data types to strings
+
+        config.set(preset_name, key, value)
+
+    with open(FIGURE_PRESETS_CONFIG, 'w') as configfile:
+        config.write(configfile)
+
+@app.route('/saveState', methods=['POST'])
+def saveState():
+    preset_name = request.json.get("presetname")
+    homo = request.json.get("homo")
+    abproteinname = request.json.get("abproteinname")
+    proteinname = request.json.get("proteinname")
+    if homo == True:
+        homolen = request.json.get("homolen")
+        homostructures = request.json.get("homostructures")
+        homofeatures = request.json.get("homofeatures")
+
+        preset_vals = {
+            "homo": homo,
+            "abproteinname": abproteinname,
+            "proteinname": proteinname,
+            "homolen": homolen,
+            "homostructures": homostructures,
+            "homofeatures": homofeatures
+        }
+
+    else:
+        leftlen = request.json.get("leftlen")
+        leftstructures = request.json.get("leftstructures")
+        rightlen = request.json.get("rightlen")
+        rightstructures = request.json.get("rightstructures")
+        leftfeatures = request.json.get("leftfeatures")
+        rightfeatures = request.json.get("rightfeatures")
+
+        preset_vals = {
+            "homo": homo,
+            "abproteinname": abproteinname,
+            "proteinname": proteinname,
+            "leftlen": leftlen,
+            "leftstructures": leftstructures,
+            "rightlen": rightlen,
+            "rightstructures": rightstructures,
+            "leftfeatures": leftfeatures,
+            "rightfeatures": rightfeatures
+        }
+
+    save_preset(str(preset_name), preset_vals)
+
+    response_data = {
+        "message": "Data received successfully"
+    }
+
+    return jsonify(response_data)
+
+def load_presets():
+    config = configparser.ConfigParser()
+    config.read(FIGURE_PRESETS_CONFIG)
+    return config.sections()
+
+@app.route('/loadStates', methods=['POST'])
+def loadStates():
+    presets = load_presets()
+    response_data = {
+        "data": presets
+    }
+
+    return jsonify(response_data)
+    
+def load_preset(section_name):
+    config = configparser.ConfigParser()
+    config.read(FIGURE_PRESETS_CONFIG)
+    if section_name in config:
+        return parse_config_dict(config[section_name])
+    else:
+        return None  # Section not found
+
+def parse_config_dict(config_section):
+    parsed_data = {}
+    for key, value in config_section.items():
+        try:
+            # Attempt to evaluate the value as literal Python expression
+            parsed_value = ast.literal_eval(value)
+            if isinstance(parsed_value, list):
+                parsed_data[key] = parsed_value
+            else:
+                parsed_data[key] = parsed_value
+        except (SyntaxError, ValueError):
+            # If evaluation fails, store the value as is
+            parsed_data[key] = value
+    return parsed_data
+
+@app.route('/loadState', methods=['POST'])
+def loadState():
+    preset = request.json.get('preset')
+
+    preset_data = load_preset(preset)
+    print(preset_data)
+
+    response_data = {
+        "data": preset_data
+    }
+
+    return jsonify(response_data)
+
 def customsortfeatures(feature):
     num = -int(feature[1])
     return num
@@ -337,7 +454,7 @@ def generatefigure():
             fill="white",
             x=0,
             y=0,
-            width=720,
+            width=480*2,
             height=480
         ),
         svg.Text( # PROTEIN NAME
@@ -473,11 +590,9 @@ def generatefigure():
         leftfeaturestemp = sorted([x for x in leftfeatures if x], key=customsortfeatures)
         leftfeatureswithoverlap = []
         for i in range(len(leftfeaturestemp)):
-            itemlen = (len(leftfeaturestemp[i][0])/maxlen)*(maxlen/5) * ((100/maxlen)*600)
             height = 0
-            if i != 0:
-                if ((int(leftfeaturestemp[i][1])/maxlen)*600)+int(itemlen) >= ((int(leftfeaturestemp[i-1][1])/maxlen)*600):
-                    height = int(leftfeatureswithoverlap[i-1][2])+30
+            if '^' in leftfeaturestemp[i][0]:
+                height = (len(leftfeaturestemp[i][0].split('^'))-1)*30
             leftfeatureswithoverlap.append(leftfeaturestemp[i]+[height])
             print(leftfeatureswithoverlap)
         for item in leftfeatureswithoverlap:
@@ -493,7 +608,7 @@ def generatefigure():
             )
             leftfeatureelements.append(
                 svg.Text(
-                    text=item[0],
+                    text=item[0].replace('^', ''),
                     x=50 + ((int(item[1]) / maxlen) * 550) + 6,
                     y=170-item[2],
                     font_family="monospace",
@@ -504,11 +619,9 @@ def generatefigure():
         rightfeaturestemp = sorted([x for x in rightfeatures if x], key=customsortfeatures)
         rightfeatureswithoverlap = []
         for i in range(len(rightfeaturestemp)):
-            itemlen = (len(rightfeaturestemp[i][0])/maxlen)*(maxlen/5) * ((100/maxlen)*600)
             height = 0
-            if i != 0:
-                if ((int(rightfeaturestemp[i][1])/maxlen)*600)+int(itemlen) >= ((int(rightfeaturestemp[i-1][1])/maxlen)*600):
-                    height = int(rightfeatureswithoverlap[i-1][2])+30
+            if '^' in rightfeaturestemp[i][0]:
+                height = (len(rightfeaturestemp[i][0].split('^'))-1)*30
             rightfeatureswithoverlap.append(rightfeaturestemp[i]+[height])
             print(rightfeatureswithoverlap)
         for item in rightfeatureswithoverlap:
@@ -524,7 +637,7 @@ def generatefigure():
             )
             rightfeatureelements.append(
                 svg.Text(
-                    text=item[0],
+                    text=item[0].replace('^', ''),
                     x=50 + ((int(item[1]) / maxlen) * 550) + 6,
                     y=330-item[2],
                     font_family="monospace",
@@ -591,11 +704,9 @@ def generatefigure():
             homofeaturestemp = sorted([x for x in homofeatures if x], key=customsortfeatures)
             homofeatureswithoverlap = []
             for i in range(len(homofeaturestemp)):
-                itemlen = (len(homofeaturestemp[i][0])/int(homolen))*(int(homolen)/5) * ((100/int(homolen))*600)
                 height = 0
-                if i != 0:
-                    if ((int(homofeaturestemp[i][1])/int(homolen))*600)+int(itemlen) >= ((int(homofeaturestemp[i-1][1])/int(homolen))*600):
-                        height = int(homofeatureswithoverlap[i-1][2])+30
+                if '^' in homofeaturestemp[i][0]:
+                    height = (len(homofeaturestemp[i][0].split('^'))-1)*30
                 homofeatureswithoverlap.append(homofeaturestemp[i]+[height])
                 print(homofeatureswithoverlap)
             for item in homofeatureswithoverlap:
@@ -624,7 +735,7 @@ def generatefigure():
         # print(homofeatures)
 
     canvas = svg.SVG(
-        width=720,
+        width=480*2,
         height=480,
         elements = base + topbar + bottombar + homobar + leftfeatureelements + rightfeatureelements + homofeatureelements
     )
