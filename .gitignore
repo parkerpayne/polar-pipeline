@@ -3,4 +3,9 @@
 # Ignore the __pycache__ folder
 __pycache__/
 # Ignore output folder
-output/
+out*
+merge.py
+nextflow.py
+variantFigureGenerator.py
+vep.py
+y_nextflow.py
