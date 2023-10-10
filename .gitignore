@@ -4,6 +4,7 @@
 __pycache__/
 # Ignore output folder
 out*
+# Ignore individual files
 merge.py
 nextflow.py
 variantFigureGenerator.py
