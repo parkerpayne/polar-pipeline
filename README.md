@@ -13,7 +13,7 @@ is a pipeline for the purpose of analyzing human genomic data.
 
 ## Introduction
 
-The Polar Pipeline is a powerful Flask-based web application tailored for the seamless execution of genomic data analysis pipelines. It is meticulously designed to provide efficient and user-friendly access to advanced genomic research tools. Some features like changing what VEP plugins are included are not part of this program, so changing these will require coding knowledge.
+The Polar Pipeline is a powerful Flask-based web application and pipeline tailored for the seamless execution of genomic data analysis pipelines. It is meticulously designed to provide efficient and user-friendly access to advanced genomic research tools. Some features like changing what VEP plugins are included are not part of this program, so changing these will require coding knowledge. It is designed for Ubuntu.
 
 ## Key Components
 
@@ -38,6 +38,7 @@ The Polar Pipeline is a powerful Flask-based web application tailored for the se
 - **Convenience:** The output of this pipeline will have both structural variants and single nucleotide variants combined into one file, in the same format. Information that was not retained when utilizing VEP is recovered and inserted into the output files.
 
 ## Installation
+This pipeline was developed and tested on Ubuntu. It has not been tested on Windows, and it is unlikely to work. Other debian-based distros may work, such as Mint, but they are similarly untested. 
 1. Install Docker on the to-be host machine.
 2. Download the polarpipelineserver folder to the host machine.
 3. Run ```sudo docker compose up -d --build``` in the polarpipelineserver directory.
