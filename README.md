@@ -17,7 +17,9 @@ The Polar Pipeline is a powerful Flask-based web application tailored for the se
 
 ## Key Components
 
-- **Backend:** The application is backed by a robust PostgreSQL server, ensuring reliable data storage and retrieval.
+- **Webapp:** The bulk of the project. It provides the frontend for file organization, data processing, task handling, and minor analysis.
+
+- **Backend:** The application hosted through Flask, and is backed by a PostgreSQL server, the RabbitMQ message broker, and the Celery job queue.
 
 - **Job Handling:** Utilizing the power of Celery, the application efficiently manages and schedules data analysis jobs, allowing for parallel processing and optimal resource utilization.
 
@@ -59,3 +61,4 @@ Even though the programs are not included in this repository, the following tool
 - Varient Effect Predictor
 
 ## License
+This project is licensed under the terms of the MIT License. See the [LICENSE](LICENSE.md) file for the full license text.
