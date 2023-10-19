@@ -40,7 +40,7 @@ The Polar Pipeline is a powerful Flask-based web application tailored for the se
 ## Installation
 1. Install Docker on the to-be host machine.
 2. Download the polarpipelineserver folder to the host machine.
-3. Run ```sudo docker compose up --build``` in the polarpipelineserver directory.
+3. Run ```sudo docker compose up -d --build``` in the polarpipelineserver directory.
 4. The Polar Pipeline webapp will build and begin hosting. The default IP on the host machine is ```10.20.0.88:5000```.
 5. Create worker machines following the instructions in the setup page on the Polar Pipeline website.
 
