@@ -1,0 +1,788 @@
+Oct-19 09:53:31.294 [main] DEBUG nextflow.cli.Launcher - $> nextflow run epi2me-labs/wf-human-variation --out_dir /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/output -w /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace -profile standard --snp --sv --cnv --bam /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/2023-10-19_09-50-40_MERGED_2022-11-15_6751315_JO_20KB.bam --ref /data/polarpipelineworker/resources/reference_files/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta --bam_min_coverage 0.01 --sv_types DEL,INS,DUP,INV,BND --snp_min_af 0.25 --indel_min_af 0.25 --min_cov 10 --min_qual 10 --sex=male --sample_name 2023-10-19_09-50-40_MERGED_2022-11-15_6751315_JO_20KB --clair3_model_path /data/polarpipelineworker/resources/clair_models/r1041_e82_400bps_sup_g615 --depth_intervals --phase_vcf --phase_sv --threads 120 --ubam_map_threads 40 --ubam_sort_threads 40 --ubam_bam2fq_threads 40 --merge_threads 120 --annotation_threads 120 --disable_ping
+Oct-19 09:53:31.371 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 23.04.4
+Oct-19 09:53:31.395 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/home/prom/.nextflow/plugins; core-plugins: nf-amazon@1.16.2,nf-azure@1.0.1,nf-codecommit@0.1.4,nf-console@1.0.5,nf-ga4gh@1.0.5,nf-google@1.7.3-patch1,nf-tower@1.5.12,nf-wave@0.8.4
+Oct-19 09:53:31.405 [main] INFO  org.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Oct-19 09:53:31.405 [main] INFO  org.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Oct-19 09:53:31.408 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.4.1 in 'deployment' mode
+Oct-19 09:53:31.418 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Oct-19 09:53:31.434 [main] DEBUG nextflow.scm.ProviderConfig - Using SCM config path: /home/prom/.nextflow/scm
+Oct-19 09:53:32.420 [main] DEBUG nextflow.scm.AssetManager - Git config: /home/prom/.nextflow/assets/epi2me-labs/wf-human-variation/.git/config; branch: master; remote: origin; url: https://github.com/epi2me-labs/wf-human-variation.git
+Oct-19 09:53:32.442 [main] DEBUG nextflow.scm.RepositoryFactory - Found Git repository result: [RepositoryFactory]
+Oct-19 09:53:32.450 [main] DEBUG nextflow.scm.AssetManager - Git config: /home/prom/.nextflow/assets/epi2me-labs/wf-human-variation/.git/config; branch: master; remote: origin; url: https://github.com/epi2me-labs/wf-human-variation.git
+Oct-19 09:53:33.157 [main] DEBUG nextflow.config.ConfigBuilder - Found config base: /home/prom/.nextflow/assets/epi2me-labs/wf-human-variation/nextflow.config
+Oct-19 09:53:33.158 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/prom/.nextflow/assets/epi2me-labs/wf-human-variation/nextflow.config
+Oct-19 09:53:33.172 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Oct-19 09:53:33.486 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declararion
+Oct-19 09:53:33.487 [main] INFO  nextflow.cli.CmdRun - Launching `https://github.com/epi2me-labs/wf-human-variation` [zen_bernard] DSL2 - revision: 93a02af3ff [master]
+Oct-19 09:53:33.488 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Oct-19 09:53:33.488 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[]
+Oct-19 09:53:33.490 [main] DEBUG nextflow.secret.LocalSecretsProvider - Secrets store: /home/prom/.nextflow/secrets/store.json
+Oct-19 09:53:33.494 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@72028a45] - activable => nextflow.secret.LocalSecretsProvider@72028a45
+Oct-19 09:53:33.556 [main] DEBUG nextflow.Session - Session UUID: 1493af38-e920-43d1-bea7-568c2b85b24e
+Oct-19 09:53:33.556 [main] DEBUG nextflow.Session - Run name: zen_bernard
+Oct-19 09:53:33.557 [main] DEBUG nextflow.Session - Executor pool size: 160
+Oct-19 09:53:33.569 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=480; workQueue=LinkedBlockingQueue[10000]; allowCoreThreadTimeout=false
+Oct-19 09:53:33.596 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 23.04.4 build 5881
+  Created: 25-09-2023 15:34 UTC (10:34 CDT)
+  System: Linux 5.15.0-83-generic
+  Runtime: Groovy 3.0.16 on OpenJDK 64-Bit Server VM 17.0.6+10-LTS
+  Encoding: UTF-8 (UTF-8)
+  Process: 923434@PCA100177 [169.254.3.1]
+  CPUs: 160 - Mem: 503.5 GB (47.9 GB) - Swap: 0 (0)
+Oct-19 09:53:33.610 [main] DEBUG nextflow.Session - Work-dir: /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace [ext2/ext3]
+Oct-19 09:53:33.635 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Oct-19 09:53:33.645 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+Oct-19 09:53:33.753 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Oct-19 09:53:33.764 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 161; maxThreads: 1000
+Oct-19 09:53:33.829 [main] DEBUG nextflow.Session - Session start
+Oct-19 09:53:33.833 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow started -- trace file: /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/output/execution/trace.txt
+Oct-19 09:53:33.842 [main] DEBUG nextflow.Session - Using default localLib path: /home/prom/.nextflow/assets/epi2me-labs/wf-human-variation/lib
+Oct-19 09:53:33.845 [main] DEBUG nextflow.Session - Adding to the classpath library: /home/prom/.nextflow/assets/epi2me-labs/wf-human-variation/lib
+Oct-19 09:53:33.846 [main] DEBUG nextflow.Session - Adding to the classpath library: /home/prom/.nextflow/assets/epi2me-labs/wf-human-variation/lib/nfcore_external_java_deps.jar
+Oct-19 09:53:36.601 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Oct-19 09:53:41.370 [main] WARN  nextflow.Nextflow - Found unexpected parameters:
+* --phase_sv: true
+* --sv_types: DEL,INS,DUP,INV,BND
+Oct-19 09:53:41.371 [main] INFO  nextflow.Nextflow - [2m- Ignore this warning: params.schema_ignore_params = "phase_sv,sv_types" [0m
+Oct-19 09:53:41.390 [main] INFO  nextflow.Nextflow - 
+[0;92m||||||||||   [0m[2m_____ ____ ___ ____  __  __ _____      _       _
+[0;92m||||||||||  [0m[2m| ____|  _ \_ _|___ \|  \/  | ____|    | | __ _| |__  ___
+[0;33m|||||       [0m[2m|  _| | |_) | |  __) | |\/| |  _| _____| |/ _` | '_ \/ __|
+[0;33m|||||       [0m[2m| |___|  __/| | / __/| |  | | |__|_____| | (_| | |_) \__ \
+[0;94m||||||||||  [0m[2m|_____|_|  |___|_____|_|  |_|_____|    |_|\__,_|_.__/|___/
+[0;94m||||||||||  [0m[1mwf-human-variation v1.8.3-g93a02af[0m
+[2m--------------------------------------------------------------------------------[0m
+[1mCore Nextflow options[0m
+  [0;34mrevision           : [0;32mmaster[0m
+  [0;34mrunName            : [0;32mzen_bernard[0m
+  [0;34mcontainerEngine    : [0;32mdocker[0m
+  [0;34mcontainer          : [0;32montresearch/wf-human-variation:sha0800eade05e4cbb75d45421633c78c4f6320b2f6[0m
+  [0;34mlaunchDir          : [0;32m/data/polarpipelineworker/services[0m
+  [0;34mworkDir            : [0;32m/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace[0m
+  [0;34mprojectDir         : [0;32m/home/prom/.nextflow/assets/epi2me-labs/wf-human-variation[0m
+  [0;34muserName           : [0;32mprom[0m
+  [0;34mprofile            : [0;32mstandard[0m
+  [0;34mconfigFiles        : [0;32m/home/prom/.nextflow/assets/epi2me-labs/wf-human-variation/nextflow.config[0m
+
+[1mWorkflow Options[0m
+  [0;34msv                 : [0;32mtrue[0m
+  [0;34msnp                : [0;32mtrue[0m
+  [0;34mcnv                : [0;32mtrue[0m
+
+[1mMain options[0m
+  [0;34msample_name        : [0;32m2023-10-19_09-50-40_MERGED_2022-11-15_6751315_JO_20KB[0m
+  [0;34mbam                : [0;32m/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/2023-10-19_09-50-40_MERGED_2022-11-15_6751315_JO_20KB.bam[0m
+  [0;34mref                : [0;32m/data/polarpipelineworker/resources/reference_files/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta[0m
+  [0;34mbam_min_coverage   : [0;32m0.01[0m
+  [0;34mout_dir            : [0;32m/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/output[0m
+
+[1mSmall variant calling options[0m
+  [0;34mphase_vcf          : [0;32mtrue[0m
+  [0;34mclair3_model_path  : [0;32m/data/polarpipelineworker/resources/clair_models/r1041_e82_400bps_sup_g615[0m
+  [0;34msnp_min_af         : [0;32m0.25[0m
+  [0;34mindel_min_af       : [0;32m0.25[0m
+  [0;34mmin_cov            : [0;32m10[0m
+  [0;34mmin_qual           : [0;32m10[0m
+
+[1mShort tandem repeat expansion genotyping options[0m
+  [0;34msex                : [0;32mmale[0m
+
+[1mAdvanced Options[0m
+  [0;34mdepth_intervals    : [0;32mtrue[0m
+
+[1mMultiprocessing Options[0m
+  [0;34mthreads            : [0;32m120[0m
+  [0;34mubam_map_threads   : [0;32m40[0m
+  [0;34mubam_sort_threads  : [0;32m40[0m
+  [0;34mubam_bam2fq_threads: [0;32m40[0m
+  [0;34mmerge_threads      : [0;32m120[0m
+  [0;34mannotation_threads : [0;32m120[0m
+
+[1mMiscellaneous Options[0m
+  [0;34mdisable_ping       : [0;32mtrue[0m
+
+!! Only displaying parameters that differ from the pipeline defaults !!
+[2m--------------------------------------------------------------------------------[0m
+If you use epi2me-labs/wf-human-variation for your analysis please cite:
+
+* The nf-core framework
+  https://doi.org/10.1038/s41587-020-0439-x
+
+
+[2m--------------------------------------------------------------------------------[0m
+This is epi2me-labs/wf-human-variation v1.8.3-g93a02af.
+[2m--------------------------------------------------------------------------------[0m
+Oct-19 09:53:41.401 [main] WARN  nextflow.Nextflow - CNV calling subworkflow does not support CRAM. You don't need to do anything, but we're just letting you know that:
+Oct-19 09:53:41.401 [main] WARN  nextflow.Nextflow - - If your input file is CRAM, it will be converted to a temporary BAM inside the workflow automatically.
+Oct-19 09:53:41.401 [main] WARN  nextflow.Nextflow - - If your input requires alignment or basecalling, the outputs will be saved to your output directory as BAM instead of CRAM.
+Oct-19 09:53:41.564 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.565 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.572 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Oct-19 09:53:41.578 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=160; memory=503.5 GB; capacity=160; pollInterval=100ms; dumpInterval=5m
+Oct-19 09:53:41.681 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.682 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.710 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.710 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.722 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.722 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.728 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.728 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.739 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.739 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.747 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.747 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.757 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_common` matches labels `wf_common` for process with name readStats
+Oct-19 09:53:41.758 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.758 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.765 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.765 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.768 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.769 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.772 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.773 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.849 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.849 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.871 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.872 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.875 [main] WARN  nextflow.Nextflow - Overriding Clair3 model with /data/polarpipelineworker/resources/clair_models/r1041_e82_400bps_sup_g615.
+Oct-19 09:53:41.900 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name snp:make_chunks
+Oct-19 09:53:41.901 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.901 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.929 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name snp:pileup_variants
+Oct-19 09:53:41.943 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.943 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.944 [main] DEBUG nextflow.processor.TaskProcessor - Creating *combiner* operator for each param(s) at index(es): [0]
+Oct-19 09:53:41.956 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name snp:aggregate_pileup_variants
+Oct-19 09:53:41.957 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.957 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.967 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name snp:select_het_snps
+Oct-19 09:53:41.968 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.968 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.969 [main] DEBUG nextflow.processor.TaskProcessor - Creating *combiner* operator for each param(s) at index(es): [0]
+Oct-19 09:53:41.978 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.978 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.989 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name snp:merge_haplotagged_contigs
+Oct-19 09:53:41.990 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.990 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.993 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name snp:get_qual_filter
+Oct-19 09:53:41.994 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.994 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:41.998 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name snp:create_candidates
+Oct-19 09:53:41.999 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:41.999 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.000 [main] DEBUG nextflow.processor.TaskProcessor - Creating *combiner* operator for each param(s) at index(es): [0]
+Oct-19 09:53:42.030 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name snp:evaluate_candidates
+Oct-19 09:53:42.031 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.031 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.044 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name snp:aggregate_full_align_variants
+Oct-19 09:53:42.045 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.045 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.054 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name snp:merge_pileup_and_full_vars
+Oct-19 09:53:42.055 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.056 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.058 [main] DEBUG nextflow.processor.TaskProcessor - Creating *combiner* operator for each param(s) at index(es): [0]
+Oct-19 09:53:42.066 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.066 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.075 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name snp:aggregate_all_variants
+Oct-19 09:53:42.076 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.076 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.080 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.080 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.091 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_sv` matches labels `wf_human_sv` for process with name sv:variantCall:filterBam
+Oct-19 09:53:42.092 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.092 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.098 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_sv` matches labels `wf_human_sv` for process with name sv:variantCall:sniffles2
+Oct-19 09:53:42.099 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.099 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.103 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.103 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.105 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_sv` matches labels `wf_human_sv` for process with name sv:variantCall:sortVCF
+Oct-19 09:53:42.106 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.106 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.109 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_sv` matches labels `wf_human_sv` for process with name sv:variantCall:indexVCF
+Oct-19 09:53:42.110 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.112 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.121 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:snpeff_annotation` matches labels `snpeff_annotation` for process with name sv:annotate_sv_vcf
+Oct-19 09:53:42.121 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.121 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.126 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_sv` matches labels `wf_human_sv` for process with name sv:runReport:getVersions
+Oct-19 09:53:42.127 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.127 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.129 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_sv` matches labels `wf_human_sv` for process with name sv:runReport:getParams
+Oct-19 09:53:42.129 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.129 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.133 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.133 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.140 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_sv` matches labels `wf_human_sv` for process with name output_sv
+Oct-19 09:53:42.140 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.140 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.149 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name refine_with_sv
+Oct-19 09:53:42.150 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.150 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.155 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:snpeff_annotation` matches labels `snpeff_annotation` for process with name annotate_snp_vcf
+Oct-19 09:53:42.155 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.155 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.158 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name vcfStats
+Oct-19 09:53:42.159 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.159 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.161 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name report_snp:getVersions
+Oct-19 09:53:42.161 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.161 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.163 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name report_snp:getParams
+Oct-19 09:53:42.164 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.164 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.167 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.168 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.176 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_human_snp` matches labels `wf_human_snp` for process with name output_snp
+Oct-19 09:53:42.176 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.176 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.182 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_cnv` matches labels `wf_cnv` for process with name cnv:callCNV
+Oct-19 09:53:42.183 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.183 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.185 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_cnv` matches labels `wf_cnv` for process with name cnv:getVersions
+Oct-19 09:53:42.186 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.186 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.188 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_cnv` matches labels `wf_cnv` for process with name cnv:getParams
+Oct-19 09:53:42.189 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.189 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.194 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.194 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.198 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:wf_cnv` matches labels `wf_cnv` for process with name output_cnv
+Oct-19 09:53:42.198 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.198 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.207 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.207 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.242 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Oct-19 09:53:42.242 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-19 09:53:42.245 [main] DEBUG nextflow.Session - Workflow process names [dsl2]: filterBam, get_qual_filter, intersectBedWithTruthset, makeAlignmentReport, qsFilter, snp:evaluate_candidates, create_candidates, index_ref_gzi, makeReport, validate_modbam, sv:runReport:getVersions, report_snp:getVersions, sv:runReport:report, output_snp, eval_downsampling, annotate_vcf, merge_vcf, modkit_phase, bam_ingress:check_for_alignment, getAllChromosomesBed, post_clair_phase_contig, output_cnv, merge_pileup_and_full_vars, snp:pileup_variants, refine_with_sv, sv:variantCall:indexVCF, mapula, haploblocks_snp, readStats, downsampling, evaluate_candidates, snp:phase_contig_haplotag, aggregate_pileup_variants, lookup_clair3_model, index_ref_fai, merge_fail_calls, filterCalls, cnv:callCNV, failedQCReport, bam_ingress:minimap2_alignment, mosdepth_downsampled, mosdepth_input, snp:get_qual_filter, report_snp:makeReport, call_str, vcfStats, getGenome, snp:select_het_snps, decompress_ref, aggregate_all_variants, report, snp:aggregate_all_variants, haploblocks_sv, sv:variantCall:filterBam, bed_filter, align_and_qsFilter, phase_all, haploblocks, snp:merge_pileup_and_full_vars, annotate_snp_vcf, merge_calls_to_fastq, sortVCF, sv:variantCall:sniffles2, indexVCF, filterBenchmarkVcf, hap, make_mmi, select_het_snps, getVersions, bam_ingress:cram_to_bam, callCNV, snp:merge_haplotagged_contigs, pileup_variants, phase_contig, cnv:makeReport, aggregate_full_align_variants, merge_tsv, cram_to_bam, merge_haplotagged_contigs, phase_contig_haplotag, annotate_sv_vcf, configure_jbrowse, check_for_alignment, samtools_index, getParams, snp:aggregate_full_align_variants, make_report, annotate_repeat_expansions, sv:runReport:getParams, haploblocks_joint, sniffles2, get_region_coverage, output_sv, cnv:getVersions, get_coverage, truvari, minimap2_alignment, publish_artifact, modkit, sv:variantCall:sortVCF, snp:haploblocks_snp, make_chunks, snp:create_candidates, vcf_concat_all, output_str, cram_cache, merge_pass_calls_to_fastq, sv:variantCall:filterCalls, merge_calls, merge_pass_calls, sv:annotate_sv_vcf, mosdepth, dorado, merge_fail_calls_to_fastq, snp:make_chunks, snp:aggregate_pileup_variants, report_snp:getParams, snp:post_clair_phase_contig, cnv:getParams
+Oct-19 09:53:42.249 [main] DEBUG nextflow.Session - Igniting dataflow network (68)
+Oct-19 09:53:42.260 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > bam_ingress:check_for_alignment
+Oct-19 09:53:42.260 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > bam_ingress:cram_to_bam
+Oct-19 09:53:42.261 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > bam_ingress:minimap2_alignment
+Oct-19 09:53:42.261 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > getGenome
+Oct-19 09:53:42.261 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > cram_cache
+Oct-19 09:53:42.261 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > getAllChromosomesBed
+Oct-19 09:53:42.261 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > mosdepth_input
+Oct-19 09:53:42.262 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > readStats
+Oct-19 09:53:42.262 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > getVersions
+Oct-19 09:53:42.262 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > getParams
+Oct-19 09:53:42.262 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > get_coverage
+Oct-19 09:53:42.262 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > makeAlignmentReport
+Oct-19 09:53:42.262 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > failedQCReport
+Oct-19 09:53:42.262 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:make_chunks
+Oct-19 09:53:42.262 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:pileup_variants
+Oct-19 09:53:42.263 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:pileup_variants
+Oct-19 09:53:42.263 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:aggregate_pileup_variants
+Oct-19 09:53:42.263 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:select_het_snps
+Oct-19 09:53:42.263 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:select_het_snps
+Oct-19 09:53:42.263 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:phase_contig_haplotag
+Oct-19 09:53:42.263 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:merge_haplotagged_contigs
+Oct-19 09:53:42.263 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:get_qual_filter
+Oct-19 09:53:42.263 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:create_candidates
+Oct-19 09:53:42.263 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:create_candidates
+Oct-19 09:53:42.263 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:evaluate_candidates
+Oct-19 09:53:42.263 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:aggregate_full_align_variants
+Oct-19 09:53:42.265 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:merge_pileup_and_full_vars
+Oct-19 09:53:42.265 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:merge_pileup_and_full_vars
+Oct-19 09:53:42.265 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:post_clair_phase_contig
+Oct-19 09:53:42.265 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:aggregate_all_variants
+Oct-19 09:53:42.265 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > snp:haploblocks_snp
+Oct-19 09:53:42.265 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > sv:variantCall:filterBam
+Oct-19 09:53:42.265 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > sv:variantCall:sniffles2
+Oct-19 09:53:42.265 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > sv:variantCall:filterCalls
+Oct-19 09:53:42.265 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > sv:variantCall:sortVCF
+Oct-19 09:53:42.265 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > sv:variantCall:indexVCF
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > sv:annotate_sv_vcf
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > sv:runReport:getVersions
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > sv:runReport:getParams
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > sv:runReport:report
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > output_sv
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > refine_with_sv
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > annotate_snp_vcf
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > vcfStats
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > report_snp:getVersions
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > report_snp:getParams
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > report_snp:makeReport
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > output_snp
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > cnv:callCNV
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > cnv:getVersions
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > cnv:getParams
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > cnv:makeReport
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > output_cnv
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > configure_jbrowse
+Oct-19 09:53:42.266 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > publish_artifact
+Oct-19 09:53:42.266 [main] DEBUG nextflow.script.ScriptRunner - > Awaiting termination 
+Oct-19 09:53:42.266 [main] DEBUG nextflow.Session - Session await
+Oct-19 09:53:42.419 [Actor Thread 160] DEBUG nextflow.util.CacheHelper - Hash asset file sha-256: /home/prom/.nextflow/assets/epi2me-labs/wf-human-variation/bin/workflow-glue
+Oct-19 09:53:42.504 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Oct-19 09:53:42.508 [Task submitter] INFO  nextflow.Session - [60/94dbec] Submitted process > cnv:getParams
+Oct-19 09:53:42.514 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Oct-19 09:53:42.514 [Task submitter] INFO  nextflow.Session - [e5/7fb497] Submitted process > cnv:getVersions
+Oct-19 09:53:42.520 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Oct-19 09:53:42.521 [Task submitter] INFO  nextflow.Session - [57/7995e1] Submitted process > report_snp:getParams
+Oct-19 09:53:42.537 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Oct-19 09:53:42.538 [Task submitter] INFO  nextflow.Session - [1e/2fdb86] Submitted process > bam_ingress:check_for_alignment (1)
+Oct-19 09:53:42.544 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Oct-19 09:53:42.545 [Task submitter] INFO  nextflow.Session - [03/fe5b6a] Submitted process > getVersions
+Oct-19 09:53:42.553 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Oct-19 09:53:42.554 [Task submitter] INFO  nextflow.Session - [b4/eae1d5] Submitted process > report_snp:getVersions
+Oct-19 09:53:42.562 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Oct-19 09:53:42.563 [Task submitter] INFO  nextflow.Session - [3f/906af8] Submitted process > sv:runReport:getVersions
+Oct-19 09:53:42.568 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Oct-19 09:53:42.569 [Task submitter] INFO  nextflow.Session - [7d/2aa9e3] Submitted process > sv:runReport:getParams
+Oct-19 09:53:42.573 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Oct-19 09:53:42.574 [Task submitter] INFO  nextflow.Session - [18/17842f] Submitted process > getParams
+Oct-19 09:53:42.578 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Oct-19 09:53:42.579 [Task submitter] INFO  nextflow.Session - [4a/bbb2fe] Submitted process > cram_cache (1)
+Oct-19 09:53:42.661 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 1; name: cnv:getParams; status: COMPLETED; exit: 126; error: -; workDir: /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/60/94dbec03fe26e80194dee346e2ca5f]
+Oct-19 09:53:42.669 [Task monitor] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=cnv:getParams; work-dir=/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/60/94dbec03fe26e80194dee346e2ca5f
+  error [nextflow.exception.ProcessFailedException]: Process `cnv:getParams` terminated with an error exit status (126)
+Oct-19 09:53:42.681 [Task monitor] ERROR nextflow.processor.TaskProcessor - Error executing process > 'cnv:getParams'
+
+Caused by:
+  Process `cnv:getParams` terminated with an error exit status (126)
+
+Command executed:
+
+  # Output nextflow params object to JSON
+          echo '{
+      "help": false,
+      "version": false,
+      "disable_ping": true,
+      "threads": 120,
+      "aws_image_prefix": null,
+      "aws_queue": null,
+      "out_dir": "/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/output",
+      "snp": true,
+      "sv": true,
+      "mod": false,
+      "cnv": true,
+      "str": false,
+      "mapula": false,
+      "sv_benchmark": false,
+      "sv_benchmark_vcf": null,
+      "sv_benchmark_bed": null,
+      "fast5_dir": null,
+      "bam": "/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/2023-10-19_09-50-40_MERGED_2022-11-15_6751315_JO_20KB.bam",
+      "ref": "/data/polarpipelineworker/resources/reference_files/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta",
+      "old_ref": null,
+      "bed": null,
+      "bam_min_coverage": 0.01,
+      "downsample_coverage": false,
+      "downsample_coverage_target": 60,
+      "downsample_coverage_margin": 1.1,
+      "depth_window_size": 25000,
+      "basecaller": "dorado",
+      "basecaller_chunk_size": 25,
+      "basecaller_cfg": "dna_r10.4.1_e8.2_400bps_sup@v4.1.0",
+      "basecaller_args": null,
+      "basecaller_basemod_threads": 2,
+      "cuda_device": "cuda:all",
+      "ubam_map_threads": 40,
+      "ubam_sort_threads": 40,
+      "ubam_bam2fq_threads": 40,
+      "fastq_only": false,
+      "merge_threads": 120,
+      "basecaller_model_path": null,
+      "remora_model_path": null,
+      "qscore_filter": 10,
+      "remora_cfg": null,
+      "dorado_ext": "fast5",
+      "annotation": true,
+      "annotation_threads": 120,
+      "clair3_model_path": "/data/polarpipelineworker/resources/clair_models/r1041_e82_400bps_sup_g615",
+      "phase_vcf": true,
+      "use_longphase": true,
+      "use_longphase_intermediate": true,
+      "sample_name": "2023-10-19_09-50-40_MERGED_2022-11-15_6751315_JO_20KB",
+      "ctg_name": "EMPTY",
+      "include_all_ctgs": false,
+      "ref_pct_full": 0.1,
+      "var_pct_full": 0.7,
+      "GVCF": false,
+      "snp_min_af": 0.25,
+      "indel_min_af": 0.25,
+      "vcf_fn": "EMPTY",
+      "min_contig_size": 0,
+      "min_mq": 5,
+      "min_cov": 10,
+      "min_qual": 10,
+      "refine_snp_with_sv": true,
+      "tr_bed": null,
+      "min_sv_length": 30,
+      "min_read_support": "auto",
+      "min_read_support_limit": 2,
+      "cluster_merge_pos": 150,
+      "sniffles_args": null,
+      "bin_size": 500,
+      "modkit_args": null,
+      "phase_mod": false,
+      "force_strand": false,
+      "modkit_threads": 4,
+      "sex": "male",
+      "depth_intervals": true,
+      "joint_phasing": false,
+      "monochrome_logs": false,
+      "validate_params": true,
+      "show_hidden_params": false,
+      "schema_ignore_params": "show_hidden_params,validate_params,monochrome_logs,aws_queue,aws_image_prefix,wf,min_read_support,min_read_support_limit,fastq_only",
+      "wf": {
+          "name": "wf-human-variation",
+          "template_version": "195cab5",
+          "example_cmd": [
+              "--bam 'wf-human-variation-demo/demo.bam'",
+              "--basecaller_cfg 'clair3:dna_r10.4.1_e8.2_400bps_hac_prom'",
+              "--mod",
+              "--ref 'wf-human-variation-demo/demo.fasta'",
+              "--sample_name 'DEMO'",
+              "--snp",
+              "--sv"
+          ],
+          "agent": null,
+          "e2l_base_tag": "sha0800eade05e4cbb75d45421633c78c4f6320b2f6",
+          "e2l_snp_tag": "sha0d7e7e8e8207d9d23fdf50a34ceb577da364373e",
+          "e2l_sv_tag": "shabc3ac908a14705f248cdf49f218956ec33e93ef9",
+          "e2l_mod_tag": "shaa6e616571797d97ae2736c7ebdcb4613fe77f263",
+          "basecaller_container": "dorado:sha1433bfc3146fd0dc94ad9648452364f2327cf1b0",
+          "cnv_tag": "sha428cb19e51370020ccf29ec2af4eead44c6a17c2",
+          "str_tag": "sha28799bc3058fa256c01c1f07c87f04e4ade1fcc1",
+          "snpeff_tag": "sha4f289afaf754c7a3e0b9ffb6c0b5be0f89a5cf04",
+          "common_sha": "sha0a6dc21fac17291f4acb2e0f67bcdec7bf63e6b7"
+      },
+      "sv_types": "DEL,INS,DUP,INV,BND",
+      "phase_sv": true
+  }' > params.json
+
+Command exit status:
+  126
+
+Command output:
+  (empty)
+
+Command error:
+  docker: permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/create?name=nxf-TR8irVcAGWyy0GRsehKuddA4": dial unix /var/run/docker.sock: connect: permission denied.
+  See 'docker run --help'.
+
+Work dir:
+  /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/60/94dbec03fe26e80194dee346e2ca5f
+
+Tip: when you have fixed the problem you can continue the execution adding the option `-resume` to the run command line
+Oct-19 09:53:42.697 [Task monitor] DEBUG nextflow.Session - Session aborted -- Cause: Process `cnv:getParams` terminated with an error exit status (126)
+Oct-19 09:53:42.722 [Task monitor] DEBUG nextflow.Session - The following nodes are still active:
+[process] bam_ingress:cram_to_bam
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (queue) OPEN  ; channel: -
+  port 2: (cntrl) -     ; channel: $
+
+[process] bam_ingress:minimap2_alignment
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: reference
+  port 1: (queue) OPEN  ; channel: -
+  port 2: (value) bound ; channel: -
+  port 3: (cntrl) -     ; channel: $
+
+[process] getGenome
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (cntrl) -     ; channel: $
+
+[process] getAllChromosomesBed
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (cntrl) -     ; channel: $
+
+[process] mosdepth_input
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (queue) OPEN  ; channel: target_bed
+  port 2: (queue) OPEN  ; channel: -
+  port 3: (cntrl) -     ; channel: $
+
+[process] readStats
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (queue) OPEN  ; channel: target_bed
+  port 2: (queue) OPEN  ; channel: -
+  port 3: (cntrl) -     ; channel: $
+
+[process] get_coverage
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: mosdepth_summary
+  port 1: (cntrl) -     ; channel: $
+
+[process] makeAlignmentReport
+  status=ACTIVE
+  port 0: (value) OPEN  ; channel: -
+  port 1: (cntrl) -     ; channel: $
+
+[process] failedQCReport
+  status=ACTIVE
+  port 0: (value) OPEN  ; channel: -
+  port 1: (cntrl) -     ; channel: $
+
+[process] snp:make_chunks
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (queue) OPEN  ; channel: -
+  port 2: (queue) OPEN  ; channel: bed
+  port 3: (queue) OPEN  ; channel: model_path
+  port 4: (cntrl) -     ; channel: $
+
+[process] snp:pileup_variants
+  status=ACTIVE
+  port 0: (value) OPEN  ; channel: __$eachinparam<0>
+  port 1: (queue) OPEN  ; channel: -
+  port 2: (queue) OPEN  ; channel: -
+  port 3: (queue) OPEN  ; channel: model
+  port 4: (queue) OPEN  ; channel: bed
+  port 5: (queue) OPEN  ; channel: command
+  port 6: (value) bound ; channel: split_bed/*
+  port 7: (cntrl) -     ; channel: $
+
+[process] snp:aggregate_pileup_variants
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (value) OPEN  ; channel: input_vcfs/*
+  port 2: (queue) OPEN  ; channel: contigs
+  port 3: (queue) OPEN  ; channel: command
+  port 4: (cntrl) -     ; channel: $
+
+[process] snp:select_het_snps
+  status=ACTIVE
+  port 0: (value) OPEN  ; channel: __$eachinparam<0>
+  port 1: (queue) OPEN  ; channel: -
+  port 2: (queue) OPEN  ; channel: split_folder/phase_qual
+  port 3: (cntrl) -     ; channel: $
+
+[process] snp:phase_contig_haplotag
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (cntrl) -     ; channel: $
+
+[process] snp:merge_haplotagged_contigs
+  status=ACTIVE
+  port 0: (value) OPEN  ; channel: contig_xams
+  port 1: (queue) OPEN  ; channel: -
+  port 2: (queue) OPEN  ; channel: -
+  port 3: (cntrl) -     ; channel: $
+
+[process] snp:get_qual_filter
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (cntrl) -     ; channel: $
+
+[process] snp:create_candidates
+  status=ACTIVE
+  port 0: (value) OPEN  ; channel: __$eachinparam<0>
+  port 1: (queue) OPEN  ; channel: -
+  port 2: (queue) OPEN  ; channel: -
+  port 3: (queue) OPEN  ; channel: candidate_bed/qual
+  port 4: (cntrl) -     ; channel: $
+
+[process] snp:evaluate_candidates
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (queue) OPEN  ; channel: -
+  port 2: (queue) OPEN  ; channel: -
+  port 3: (queue) OPEN  ; channel: model
+  port 4: (queue) OPEN  ; channel: command
+  port 5: (cntrl) -     ; channel: $
+
+[process] snp:aggregate_full_align_variants
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (value) OPEN  ; channel: full_alignment/*
+  port 2: (queue) OPEN  ; channel: contigs
+  port 3: (value) OPEN  ; channel: gvcf_tmp_path/*
+  port 4: (queue) OPEN  ; channel: command
+  port 5: (cntrl) -     ; channel: $
+
+[process] snp:merge_pileup_and_full_vars
+  status=ACTIVE
+  port 0: (value) OPEN  ; channel: __$eachinparam<0>
+  port 1: (queue) OPEN  ; channel: -
+  port 2: (queue) OPEN  ; channel: -
+  port 3: (queue) OPEN  ; channel: -
+  port 4: (queue) OPEN  ; channel: non_var.gvcf
+  port 5: (value) OPEN  ; channel: candidate_beds/*
+  port 6: (cntrl) -     ; channel: $
+
+[process] snp:post_clair_phase_contig
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (cntrl) -     ; channel: $
+
+[process] snp:aggregate_all_variants
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (value) OPEN  ; channel: merge_output/*
+  port 2: (value) OPEN  ; channel: merge_outputs_gvcf/*
+  port 3: (value) bound ; channel: phase_vcf
+  port 4: (queue) OPEN  ; channel: contigs
+  port 5: (queue) OPEN  ; channel: command
+  port 6: (cntrl) -     ; channel: $
+
+[process] snp:haploblocks_snp
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (value) bound ; channel: output_label
+  port 2: (cntrl) -     ; channel: $
+
+[process] sv:variantCall:filterBam
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (queue) OPEN  ; channel: -
+  port 2: (queue) OPEN  ; channel: -
+  port 3: (cntrl) -     ; channel: $
+
+[process] sv:variantCall:sniffles2
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (value) bound ; channel: tr_bed
+  port 2: (queue) OPEN  ; channel: -
+  port 3: (cntrl) -     ; channel: $
+
+[process] sv:variantCall:filterCalls
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: vcf
+  port 1: (queue) OPEN  ; channel: mosdepth_summary
+  port 2: (queue) OPEN  ; channel: target_bed
+  port 3: (cntrl) -     ; channel: $
+
+[process] sv:variantCall:sortVCF
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: vcf
+  port 1: (cntrl) -     ; channel: $
+
+[process] sv:variantCall:indexVCF
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: vcf
+  port 1: (cntrl) -     ; channel: $
+
+[process] sv:annotate_sv_vcf
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (queue) OPEN  ; channel: genome
+  port 2: (value) bound ; channel: output_label
+  port 3: (cntrl) -     ; channel: $
+
+[process] sv:runReport:report
+  status=ACTIVE
+  port 0: (value) OPEN  ; channel: vcf
+  port 1: (queue) OPEN  ; channel: clinvar_vcf
+  port 2: (queue) OPEN  ; channel: eval_json
+  port 3: (value) OPEN  ; channel: versions
+  port 4: (value) OPEN  ; channel: params.json
+  port 5: (cntrl) -     ; channel: $
+
+[process] output_sv
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: fname
+  port 1: (cntrl) -     ; channel: $
+
+[process] refine_with_sv
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (queue) OPEN  ; channel: -
+  port 2: (queue) OPEN  ; channel: -
+  port 3: (queue) OPEN  ; channel: sniffles_vcf
+  port 4: (cntrl) -     ; channel: $
+
+[process] annotate_snp_vcf
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (queue) OPEN  ; channel: genome
+  port 2: (value) bound ; channel: output_label
+  port 3: (cntrl) -     ; channel: $
+
+[process] vcfStats
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (cntrl) -     ; channel: $
+
+[process] report_snp:makeReport
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: vcfstats
+  port 1: (value) OPEN  ; channel: versions
+  port 2: (value) OPEN  ; channel: params.json
+  port 3: (queue) OPEN  ; channel: clinvar_vcf
+  port 4: (cntrl) -     ; channel: $
+
+[process] output_snp
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: fname
+  port 1: (cntrl) -     ; channel: $
+
+[process] cnv:callCNV
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (queue) OPEN  ; channel: genome_build
+  port 2: (cntrl) -     ; channel: $
+
+[process] configure_jbrowse
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (queue) OPEN  ; channel: -
+  port 2: (cntrl) -     ; channel: $
+
+[process] publish_artifact
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: fname
+  port 1: (cntrl) -     ; channel: $
+
+Oct-19 09:53:42.725 [main] DEBUG nextflow.Session - Session await > all processes finished
+Oct-19 09:53:42.725 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Oct-19 09:53:42.730 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 7; name: cnv:getVersions; status: COMPLETED; exit: 126; error: -; workDir: /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/e5/7fb4971b3b3a0589c60586528404c3]
+Oct-19 09:53:42.731 [Task monitor] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=cnv:getVersions; work-dir=/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/e5/7fb4971b3b3a0589c60586528404c3
+  error [nextflow.exception.ProcessFailedException]: Process `cnv:getVersions` terminated with an error exit status (126)
+Oct-19 09:53:42.733 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 3; name: report_snp:getParams; status: COMPLETED; exit: 126; error: -; workDir: /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/57/7995e1fbce9a9637b3201e15ce37e7]
+Oct-19 09:53:42.733 [Task monitor] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=report_snp:getParams; work-dir=/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/57/7995e1fbce9a9637b3201e15ce37e7
+  error [nextflow.exception.ProcessFailedException]: Process `report_snp:getParams` terminated with an error exit status (126)
+Oct-19 09:53:42.735 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 6; name: bam_ingress:check_for_alignment (1); status: COMPLETED; exit: 126; error: -; workDir: /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/1e/2fdb86d22c1d249d16d70b90e24440]
+Oct-19 09:53:42.735 [Task monitor] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=bam_ingress:check_for_alignment (1); work-dir=/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/1e/2fdb86d22c1d249d16d70b90e24440
+  error [nextflow.exception.ProcessFailedException]: Process `bam_ingress:check_for_alignment (1)` terminated with an error exit status (126)
+Oct-19 09:53:42.735 [main] WARN  n.processor.TaskPollingMonitor - Killing running tasks (6)
+Oct-19 09:53:42.737 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 5; name: getVersions; status: COMPLETED; exit: 126; error: -; workDir: /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/03/fe5b6af134e83adfd7e00fca7a9449]
+Oct-19 09:53:42.738 [Task monitor] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=getVersions; work-dir=/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/03/fe5b6af134e83adfd7e00fca7a9449
+  error [nextflow.exception.ProcessFailedException]: Process `getVersions` terminated with an error exit status (126)
+Oct-19 09:53:42.739 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 9; name: report_snp:getVersions; status: COMPLETED; exit: 126; error: -; workDir: /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/b4/eae1d5ed01ef26d6a7876a89531fbc]
+Oct-19 09:53:42.740 [Task monitor] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=report_snp:getVersions; work-dir=/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/b4/eae1d5ed01ef26d6a7876a89531fbc
+  error [nextflow.exception.ProcessFailedException]: Process `report_snp:getVersions` terminated with an error exit status (126)
+Oct-19 09:53:42.743 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 4; name: sv:runReport:getVersions; status: COMPLETED; exit: 126; error: -; workDir: /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/3f/906af8aa8ee107ddfc53dce9156ede]
+Oct-19 09:53:42.743 [Task monitor] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=sv:runReport:getVersions; work-dir=/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/3f/906af8aa8ee107ddfc53dce9156ede
+  error [nextflow.exception.ProcessFailedException]: Process `sv:runReport:getVersions` terminated with an error exit status (126)
+Oct-19 09:53:42.747 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 2; name: sv:runReport:getParams; status: COMPLETED; exit: 126; error: -; workDir: /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/7d/2aa9e3b19f2cfc605f7b4110476f54]
+Oct-19 09:53:42.747 [main] DEBUG n.executor.local.LocalTaskHandler - Unable to kill sv:runReport:getVersions -- command: kill -TERM 923912; exit: 1 
+ bash: line 0: kill: (923912) - No such process
+
+Oct-19 09:53:42.747 [Task monitor] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=sv:runReport:getParams; work-dir=/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/7d/2aa9e3b19f2cfc605f7b4110476f54
+  error [nextflow.exception.ProcessFailedException]: Process `sv:runReport:getParams` terminated with an error exit status (126)
+Oct-19 09:53:42.749 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 10; name: getParams; status: COMPLETED; exit: 126; error: -; workDir: /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/18/17842f98f2dd3c02217be49c4ac812]
+Oct-19 09:53:42.749 [Task monitor] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=getParams; work-dir=/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/18/17842f98f2dd3c02217be49c4ac812
+  error [nextflow.exception.ProcessFailedException]: Process `getParams` terminated with an error exit status (126)
+Oct-19 09:53:42.751 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 8; name: cram_cache (1); status: COMPLETED; exit: 126; error: -; workDir: /data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/4a/bbb2fea025754bd0e03bb4f9e38001]
+Oct-19 09:53:42.751 [Task monitor] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=cram_cache (1); work-dir=/data/polarpipelineworker/workspace/62bdd28cfbf35f4ae61d3dd5c26fc923c38d9f8e1297212dcd18c3b1953ea236/workspace/4a/bbb2fea025754bd0e03bb4f9e38001
+  error [nextflow.exception.ProcessFailedException]: Process `cram_cache (1)` terminated with an error exit status (126)
+Oct-19 09:53:42.753 [main] DEBUG n.executor.local.LocalTaskHandler - Unable to kill getParams -- command: kill -TERM 923953; exit: 1 
+ bash: line 0: kill: (923953) - No such process
+
+Oct-19 09:53:42.756 [main] DEBUG nextflow.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=0; failedCount=12; ignoredCount=0; cachedCount=0; pendingCount=0; submittedCount=0; runningCount=-2; retriesCount=0; abortedCount=0; succeedDuration=0ms; failedDuration=1.6s; cachedDuration=0ms;loadCpus=-2; loadMemory=0; peakRunning=10; peakCpus=10; peakMemory=0; ]
+Oct-19 09:53:42.756 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow completed -- saving trace file
+Oct-19 09:53:42.759 [main] DEBUG nextflow.trace.ReportObserver - Workflow completed -- rendering execution report
+Oct-19 09:53:42.805 [main] DEBUG nextflow.trace.ReportObserver - Execution report summary data:
+  [{"cpuUsage":null,"process":"getParams","mem":null,"memUsage":null,"timeUsage":null,"vmem":null,"reads":null,"cpu":null,"time":{"mean":137.6,"min":116,"q1":118,"q2":118,"q3":132,"max":204,"minLabel":"sv:runReport:getParams","maxLabel":"report_snp:getParams","q1Label":"getParams","q2Label":"getParams","q3Label":"cnv:getParams"},"writes":null},{"cpuUsage":null,"process":"getVersions","mem":null,"memUsage":null,"timeUsage":null,"vmem":null,"reads":null,"cpu":null,"time":{"mean":130.8,"min":112,"q1":112,"q2":114,"q3":114,"max":202,"minLabel":"getVersions","maxLabel":"cnv:getVersions","q1Label":"report_snp:getVersions","q2Label":"sv:runReport:getVersions","q3Label":"sv:runReport:getVersions"},"writes":null},{"cpuUsage":null,"process":"check_for_alignment","mem":null,"memUsage":null,"timeUsage":null,"vmem":null,"reads":null,"cpu":null,"time":{"mean":113,"min":113,"q1":113,"q2":113,"q3":113,"max":113,"minLabel":"bam_ingress:check_for_alignment (1)","maxLabel":"bam_ingress:check_for_alignment (1)","q1Label":"bam_ingress:check_for_alignment (1)","q2Label":"bam_ingress:check_for_alignment (1)","q3Label":"bam_ingress:check_for_alignment (1)"},"writes":null},{"cpuUsage":null,"process":"cram_cache","mem":null,"memUsage":null,"timeUsage":null,"vmem":null,"reads":null,"cpu":null,"time":{"mean":120,"min":120,"q1":120,"q2":120,"q3":120,"max":120,"minLabel":"cram_cache (1)","maxLabel":"cram_cache (1)","q1Label":"cram_cache (1)","q2Label":"cram_cache (1)","q3Label":"cram_cache (1)"},"writes":null}]
+Oct-19 09:53:43.378 [main] DEBUG nextflow.trace.TimelineObserver - Workflow completed -- rendering execution timeline
+Oct-19 09:53:43.447 [main] DEBUG nextflow.cache.CacheDB - Closing CacheDB done
+Oct-19 09:53:43.471 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye
